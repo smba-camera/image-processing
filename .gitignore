@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# project files
+.idea
+
+# virtual env
+src/virtual_env
