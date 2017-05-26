@@ -8,7 +8,7 @@ config = {
     'author': 'Daniel Merz',
     'url': 'https://github.com/smba-camera/image_processing',
     'version': '0.1',
-    'install_requires': [],
+    'install_requires': ['numpy', 'nose'],
     'packages': ['image_processing'],
     'scripts': [],
     'name': 'image_processing'
