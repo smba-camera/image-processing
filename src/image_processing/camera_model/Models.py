@@ -75,22 +75,32 @@ class ExtrinsicModel:
 
 
 
+# The Camera Model consists of one intrinsic and at least one extrinsic model
 class CameraModel:
     def __init__(self, im=None, em=None):
         if (im):
             self.intrinsic_model = im
         else:
             self.intrinsic_model = IntrinsicModel()
+
+        self.extrinsic_model = []
         if (em):
-            self.extrinsic_model = em
+            if (type(em) is list):
+                self.extrinsic_model = em
+            else:
+                self.extrinsic_model.append(em)
         else:
-            self.extrinsic_model = ExtrinsicModel()
+            self.extrinsic_model.append(ExtrinsicModel())
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
         coordsMat = numpy.matrix(coords + [1]).transpose()
-        Cxyz = numpy.matmul(self.extrinsic_model.getMatrix(), coordsMat)
-        Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), Cxyz)
+
+        matrix=coordsMat
+        for m in self.extrinsic_model:
+            matrix = numpy.matmul(m.getMatrix(), matrix)
+
+        Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), matrix)
         xz = Ixyz[0][0]
         yz = Ixyz[1][0]
         z = Ixyz[2][0]
