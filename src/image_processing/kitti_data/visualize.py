@@ -4,8 +4,9 @@ import cv2
 import glob,os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import ExtractXMLData
 import calibration
+from .vehicle_positions import VehiclePositions
+
 
 def getVehicleColor(name):
     color='none'
@@ -35,7 +36,7 @@ def showVisuals(path,date):
     fig=plt.figure()
     plt.get_current_fig_manager().window.state('zoomed')
     i=0
-    ExtractXMLData.initXMLReader(path,date)
+    vehiclePositions = VehiclePositions(path,date)
     for pic in glob.glob("*.png"):
         img=cv2.imread(pic,0)
         #print ('new Image:')
@@ -45,14 +46,14 @@ def showVisuals(path,date):
 
         ax2=fig.add_subplot(212)
 
-        vehicles=ExtractXMLData.getVehiclePosition(i)
+        vehicles=vehiclePositions.getVehiclePosition(i)
         count=len(vehicles)
         for j in range(count):
             name=vehicles[j][0]
             color=getVehicleColor(name)
             ax2.add_patch(patches.Rectangle((-vehicles[j][2]+vehicles[j][3], vehicles[j][1]-vehicles[j][4]),vehicles[j][3],vehicles[j][4],angle=vehicles[j][5],color=color) )
             vehicleCoord=[vehicles[j][1],vehicles[j][2],vehicles[j][6],1]
-            print vehicleCoord
+            print(vehicleCoord)
             ax1.add_patch(patches.Rectangle((calibration.getImageCoordinates(vehicleCoord)),20,20,color=color))
         #fig.draw
         ax2.set_ylim([0,100])
@@ -65,4 +66,4 @@ def showVisuals(path,date):
 
         #time.sleep(10)
         i+=1
-        print i
+        print(i)
