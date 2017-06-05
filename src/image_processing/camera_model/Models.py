@@ -4,14 +4,15 @@ import math
 class IntrinsicModel:
     # todo: load intrinsic parameters from config file
     # https://docs.python.org/3/library/configparser.html
-    def __init__(self):
-        self.focal_length = 1
-        self.pixel_size = 1
-        self.optical_center_x = 0 # optical center on the image is on coordinates (0,0)
-        self.optical_center_y = 0
-        self.ratio_image_coordinate_x = 1 # ratio between real world coordinates and image coordinates
-        self.ratio_image_coordinate_y = 1
-        self.pixel_skew = 0 # pixels are not rectangular
+    def __init__(self, focal_length=1, pixel_size=1, optical_center_x=0, optical_center_y=0, ratio_image_coordinate_x=1,
+                 ratio_image_coordinate_y=1, pixel_skew=0):
+        self.focal_length = focal_length
+        self.pixel_size = pixel_size
+        self.optical_center_x = optical_center_x # optical center on the image is on coordinates (0,0)
+        self.optical_center_y = optical_center_y
+        self.ratio_image_coordinate_x = ratio_image_coordinate_x # ratio between real world coordinates and image coordinates
+        self.ratio_image_coordinate_y = ratio_image_coordinate_y
+        self.pixel_skew = pixel_skew # pixels are not rectangular
 
     def getMatrix(self):
         alpha = self.focal_length * self.ratio_image_coordinate_x
