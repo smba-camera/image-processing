@@ -2,6 +2,8 @@ import numpy
 import math
 
 class IntrinsicModel:
+    # todo: load intrinsic parameters from config file
+    # https://docs.python.org/3/library/configparser.html
     def __init__(self):
         self.focal_length = 1
         self.pixel_size = 1
@@ -25,15 +27,23 @@ class IntrinsicModel:
         ])
 
 class ExtrinsicModel:
-    def __init__(self):
-        self.translation_x = 0 # camera position in real world
+    def __init__(self, rotationMatrix=None):
+        if rotationMatrix:
+            # rotation is defined by given matrix
+            self.rotationMatrix = rotationMatrix
+        else:
+            self.alpha = 0 # rotation of x axis
+            self.beta = 0 # rotation of y axis
+            self.gamma = 0 # rotation of z axis
+
+        self.translation_x = 0  # camera position in real world
         self.translation_y = 0
         self.translation_z = 0
-        self.alpha = 0 # rotation of x axis
-        self.beta = 0 # rotation of y axis
-        self.gamma = 0 # rotation of z axis
 
     def getRotationMatrix(self):
+        if (self.rotationMatrix):
+            return self.rotationMatrix
+
         cosA = math.cos(self.alpha)
         sinA = math.sin(self.alpha)
         Rx = numpy.matrix([
@@ -61,6 +71,8 @@ class ExtrinsicModel:
         R = self.getRotationMatrix()
         t = numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
         return numpy.concatenate((R, t), axis=1)
+
+
 
 class CameraModel:
     def __init__(self, im=None, em=None):
