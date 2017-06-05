@@ -2,6 +2,8 @@ import os
 import numpy as np
 import cv2
 
+# background Substraction using opencv
+
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel1 = np.ones((2,2),np.uint8)
 kernel2 = np.ones((2,2),np.uint8)
