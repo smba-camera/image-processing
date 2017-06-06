@@ -22,9 +22,9 @@ class IntrinsicModel:
         v0 = self.optical_center_y
 
         return numpy.matrix([
-            [alpha , s    , u0],
-            [0     , beta , v0],
-            [0     , 0    , 1]
+            [alpha , s    , u0, 0],
+            [0     , beta , v0, 0],
+            [0     , 0    , 1 , 0]
         ])
 
 class ExtrinsicModel:
@@ -71,8 +71,11 @@ class ExtrinsicModel:
     def getMatrix(self):
         R = self.getRotationMatrix()
         t = numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
-        return numpy.concatenate((R, t), axis=1)
-
+        if numpy.shape(R)[0]==3:
+            R=numpy.concatenate((R, t), axis=1)
+            return numpy.concatenate((R,numpy.matrix([0,0,0,1])),axis=0)
+        else:
+            return R
 
 
 # The Camera Model consists of one intrinsic and at least one extrinsic model
@@ -97,6 +100,7 @@ class CameraModel:
         coordsMat = numpy.matrix(coords + [1]).transpose()
 
         matrix=coordsMat
+
         for m in self.extrinsic_model:
             matrix = numpy.matmul(m.getMatrix(), matrix)
 

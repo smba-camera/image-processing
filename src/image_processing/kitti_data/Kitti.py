@@ -6,12 +6,9 @@ class Kitti:
         self.focal_length=0
         self.optical_center_x = 0  # optical center on the image is on coordinates (0,0)
         self.optical_center_y = 0
-        self.R_Rect = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.R_Rect = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.T_CamVelo = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]
-        self.Cam_to_Velo_Model
-        self.extrinsic_Model
-        self.intrinsic_Model
-        self.camera_Model
+
 
     def storeValueRRect(self,word,j):
         y=j//3
@@ -27,7 +24,7 @@ class Kitti:
         self.T_CamVelo[j][3]=float(word)
 
     def initCamtoCamParams(self,filepath,CamNum):
-        with open(filepath+'calib_cam_to_cam.txt') as fp:
+        with open(filepath+'\calib_cam_to_cam.txt') as fp:
             for i,line in enumerate(fp):
                 if i==(CamNum+1)*8:
                     j=0
@@ -48,7 +45,7 @@ class Kitti:
         fp.close()
 
     def initVelotoCamParams(self,filepath):
-        with open(filepath+'calib_velo_to_cam.txt') as fp:
+        with open(filepath+'\calib_velo_to_cam.txt') as fp:
             for i,line in enumerate(fp):
                 if i==1:
                     j=0

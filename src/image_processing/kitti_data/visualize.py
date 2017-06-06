@@ -52,8 +52,7 @@ class Visualizer:
                 name=vehicles[j][0]
                 color=self.getVehicleColor(name)
                 ax2.add_patch(patches.Rectangle((-vehicles[j][2]+vehicles[j][3], vehicles[j][1]-vehicles[j][4]),vehicles[j][3],vehicles[j][4],angle=vehicles[j][5],color=color) )
-                vehicleCoord=[vehicles[j][1],vehicles[j][2],vehicles[j][6],1]
-                print(vehicleCoord)
+                vehicleCoord=[vehicles[j][1],vehicles[j][2],vehicles[j][6]]
                 image_coords = self.camera_model.projectToImage(vehicleCoord)
                 ax1.add_patch(patches.Rectangle(image_coords,20,20,color=color))
             #fig.draw
@@ -67,4 +66,4 @@ class Visualizer:
 
             #time.sleep(10)
             i+=1
-            print(i)
+
