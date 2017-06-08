@@ -5,8 +5,9 @@ import matplotlib.patches as patches
 from .vehicle_positions import VehiclePositions
 
 class Visualizer:
-    def __init__(self, camera_model):
+    def __init__(self, camera_model, drive_num):
         self.camera_model = camera_model
+        self.drive_num = drive_num
 
     def getVehicleColor(self, name):
         color='none'
@@ -28,16 +29,17 @@ class Visualizer:
             color = 'grey'
         return color
 
-    def initVisualize(self, path,date,CamNum='00'):
-        os.chdir(path+'\\'+date+'\\'+date+'_drive_0001_sync\\'+date+'\\'+date+'_drive_0001_sync\\image_'+CamNum+'\data')
-
-    def showVisuals(self, path,date):
-        self.initVisualize(path,date)
+    def showVisuals(self, path,date,CamNum='00'):
         fig=plt.figure()
         plt.get_current_fig_manager().window.state('zoomed')
         i=0
-        vehiclePositions = VehiclePositions(path,date)
-        for pic in glob.glob("*.png"):
+        vehiclePositions = VehiclePositions(path,date, self.drive_num)
+
+        syncFolder = "{0}_drive_0002_sync".format(date)
+        imgFolder = "image_{}".format(CamNum)
+        imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
+        img_glob = os.path.join(imagePath, "*.png")
+        for pic in glob.glob(img_glob):
             img=cv2.imread(pic,0)
             #print ('new Image:')
             ax1=fig.add_subplot(211)

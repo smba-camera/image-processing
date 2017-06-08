@@ -107,3 +107,6 @@ ENV/
 # virtual env
 src/virtual_env
 *.ipynb
+
+#data
+data

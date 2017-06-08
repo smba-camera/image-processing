@@ -1,9 +1,14 @@
 import xml.etree.ElementTree as ET
 from collections import namedtuple
+import os
 
 class VehiclePositions:
-    def __init__(self, path, date):
-        self.parsed_xml = ET.parse(path + '\\' + date + '\\' + date + '_drive_0001_tracklets\\' + date + '\\' + date + '_drive_0001_sync\\tracklet_labels.xml').getroot()
+    def __init__(self, path, date, drive_num):
+        trackletsFolder = "{0}_drive_{1}_tracklets".format(date, drive_num)
+        syncFolder = "{0}_drive_{1}_sync".format(date, drive_num)
+        trackletsPath = os.path.join(path, date, trackletsFolder, date, syncFolder)
+        filePath = os.path.join(trackletsPath, 'tracklet_labels.xml')
+        self.parsed_xml = ET.parse(filePath).getroot()
 
     def getVehiclePosition(self, frame):
         e = self.parsed_xml
