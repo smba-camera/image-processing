@@ -36,24 +36,25 @@ class Kitti:
                             self.optical_center_y=float(word)
                         j+=1
         fp.close()
-        self.extrinsic_Model=Models.ExtrinsicModel(R_Rect)
+        self.extrinsic_Model=Models.ExtrinsicModel(rotationMatrix=R_Rect)
 
     def initVelotoCamParams(self,filepath):
-        T_CamVelo = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]
+        rot_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        trans_vect = [0,0,0]
         with open(filepath+'\calib_velo_to_cam.txt') as fp:
             for i,line in enumerate(fp):
                 if i==1:
                     j=0
-                    for word in line.split(' ',1)[1].split():
-                        self.store_value_in_matrix(T_CamVelo, word, j)
+                    for word in line.split()[1:]:
+                        self.store_value_in_matrix(rot_mat, word, j)
                         j+=1
                 if i==2:
                     j=0
-                    for word in line.split(' ',1)[1].split():
-                        self.store_value_in_matrix_last_column(T_CamVelo, word, j)
+                    for word in line.split()[1:]:
+                        trans_vect[j] = float(word)
                         j+=1
         fp.close()
-        self.Cam_to_Velo_Model = Models.ExtrinsicModel(T_CamVelo)
+        self.Cam_to_Velo_Model = Models.ExtrinsicModel(rotationMatrix=rot_mat, translationVector=trans_vect)
 
     def initialize(self,path,date,CamNum=0,):
 

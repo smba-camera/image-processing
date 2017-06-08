@@ -22,27 +22,35 @@ class IntrinsicModel:
         v0 = self.optical_center_y
 
         return numpy.matrix([
-            [alpha , s    , u0, 0],
-            [0     , beta , v0, 0],
-            [0     , 0    , 1 , 0]
+            [alpha , s    , u0],
+            [0     , beta , v0],
+            [0     , 0    , 1]
         ])
 
 class ExtrinsicModel:
-    def __init__(self, rotationMatrix=None):
+    def __init__(self, rotationMatrix=None, translationVector=None):
+
         if rotationMatrix:
             # rotation is defined by given matrix
-            self.rotationMatrix = rotationMatrix
+            self.rotationMatrix = numpy.matrix(rotationMatrix)
+            assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
         else:
             self.alpha = 0 # rotation of x axis
             self.beta = 0 # rotation of y axis
             self.gamma = 0 # rotation of z axis
-
-        self.translation_x = 0  # camera position in real world
-        self.translation_y = 0
-        self.translation_z = 0
+        if translationVector:
+            assert(len(translationVector) == 3)
+            self.translation_x = translationVector[0]  # camera position in real world
+            self.translation_y = translationVector[1]
+            self.translation_z = translationVector[2]
+        else:
+            self.translation_x = 0  # camera position in real world
+            self.translation_y = 0
+            self.translation_z = 0
 
     def getRotationMatrix(self):
-        if (self.rotationMatrix):
+
+        if (hasattr(self, 'rotationMatrix')):
             return self.rotationMatrix
 
         cosA = math.cos(self.alpha)
@@ -71,12 +79,7 @@ class ExtrinsicModel:
     def getMatrix(self):
         R = self.getRotationMatrix()
         t = numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
-        if numpy.shape(R)[0]==3:
-            R=numpy.concatenate((R, t), axis=1)
-            return numpy.concatenate((R,numpy.matrix([0,0,0,1])),axis=0)
-        else:
-            return R
-
+        return numpy.concatenate((R, t), axis=1)
 
 # The Camera Model consists of one intrinsic and at least one extrinsic model
 class CameraModel:
@@ -97,14 +100,15 @@ class CameraModel:
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
-        coordsMat = numpy.matrix(coords + [1]).transpose()
-
-        matrix=coordsMat
+        pos_vect = numpy.matrix(coords ).transpose()
 
         for m in self.extrinsic_model:
-            matrix = numpy.matmul(m.getMatrix(), matrix)
+            # append 1 at end because extrinsic matrices also contain translation
+            one_vect = numpy.matrix([1])
+            pos_vect = numpy.concatenate((pos_vect, one_vect), axis=0)
+            pos_vect = numpy.matmul(m.getMatrix(), pos_vect)
 
-        Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), matrix)
+        Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), pos_vect)
         xz = Ixyz[0][0]
         yz = Ixyz[1][0]
         z = Ixyz[2][0]
