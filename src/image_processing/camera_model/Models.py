@@ -97,8 +97,8 @@ class CameraModel:
     def calculate_projection_matrix(self):
         one_vect_short = numpy.matrix([1,1,1])
         zero_vect = numpy.matrix([0,0,0,0])
+
         intr_mat = numpy.concatenate((self.intrinsic_model.getMatrix(), one_vect_short.transpose()), axis=1)
-        intr_mat = numpy.concatenate((intr_mat, zero_vect))
         projection_mat = intr_mat
         for e_model in self.extrinsic_models:
             e_mat = numpy.concatenate((e_model.getMatrix(), zero_vect))
