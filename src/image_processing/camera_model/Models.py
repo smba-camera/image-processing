@@ -83,32 +83,59 @@ class ExtrinsicModel:
 
 # The Camera Model consists of one intrinsic and at least one extrinsic model
 class CameraModel:
-    def __init__(self, im=None, em=None):
+    def __init__(self, im=None, em=None, prepare_projection_matrix=True):
+        self.prepare_projection_matrix = prepare_projection_matrix
         if (im):
             self.intrinsic_model = im
         else:
             self.intrinsic_model = IntrinsicModel()
 
-        self.extrinsic_model = []
-        if (em):
-            if (type(em) is list):
-                self.extrinsic_model = em
+
+        self.apply_new_extrinsic_models(em)
+
+    # precalculate projection matrix for faster projection
+    def calculate_projection_matrix(self):
+        one_vect_short = numpy.matrix([1,1,1])
+        zero_vect = numpy.matrix([0,0,0,0])
+        intr_mat = numpy.concatenate((self.intrinsic_model.getMatrix(), one_vect_short.transpose()), axis=1)
+        intr_mat = numpy.concatenate((intr_mat, zero_vect))
+        projection_mat = intr_mat
+        for e_model in self.extrinsic_models:
+            e_mat = numpy.concatenate((e_model.getMatrix(), zero_vect))
+            projection_mat = numpy.matmul(projection_mat, e_mat)
+
+        self.projection_matrix = projection_mat
+
+    # will set the new extrinsic models and (if 'prepare_projection_matrix' is set) precalculate the projection
+    def apply_new_extrinsic_models(self, ems):
+        self.extrinsic_models = []
+        if (ems):
+            if (type(ems) is list):
+                self.extrinsic_models = ems
             else:
-                self.extrinsic_model.append(em)
+                self.extrinsic_models.append(ems)
         else:
-            self.extrinsic_model.append(ExtrinsicModel())
+            self.extrinsic_models.append(ExtrinsicModel())
+        if self.prepare_projection_matrix:
+            self.calculate_projection_matrix()
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
-        pos_vect = numpy.matrix(coords ).transpose()
+        pos_vect = numpy.matrix(coords).transpose()
+        one_vect = numpy.matrix([1])
 
-        for m in self.extrinsic_model:
-            # append 1 at end because extrinsic matrices also contain translation
-            one_vect = numpy.matrix([1])
-            pos_vect = numpy.concatenate((pos_vect, one_vect), axis=0)
-            pos_vect = numpy.matmul(m.getMatrix(), pos_vect)
+        Ixyz = None
+        if (hasattr(self, 'projection_matrix')):
+            pos_vect = numpy.concatenate((pos_vect, one_vect))
+            Ixyz = numpy.matmul(self.projection_matrix, pos_vect)
+        else:
+            for m in self.extrinsic_models:
+                # append 1 at end because extrinsic matrices also contain translation
+                pos_vect = numpy.concatenate((pos_vect, one_vect))
+                pos_vect = numpy.matmul(m.getMatrix(), pos_vect)
 
-        Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), pos_vect)
+            Ixyz = numpy.matmul(self.intrinsic_model.getMatrix(), pos_vect)
+
         xz = Ixyz[0][0]
         yz = Ixyz[1][0]
         z = Ixyz[2][0]
