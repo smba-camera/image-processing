@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description='Renders Kitti data with marked pos
 parser.add_argument('drive_number', type=int)
 args = parser.parse_args()
 
-path=os.path.abspath(os.path.join('..', 'data','kitti'))
+path=os.path.abspath(os.path.join('data','kitti'))
 Dates=['2011_09_26']
 
 drive_num = "{0:04d}".format(args.drive_number)
