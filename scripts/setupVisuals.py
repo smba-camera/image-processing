@@ -1,7 +1,12 @@
 import os
+import sys
+# make modules accessible for the script
+sys.path.append(os.path.abspath(os.path.join(".")))
+
 from image_processing.kitti_data import Kitti
 from image_processing.kitti_data import visualize
 import argparse
+
 
 parser = argparse.ArgumentParser(description='Renders Kitti data with marked positions of objects')
 parser.add_argument('drive_number', type=int)
