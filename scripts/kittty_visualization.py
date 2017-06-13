@@ -7,19 +7,21 @@ from image_processing.kitti_data import Kitti
 from image_processing.kitti_data import visualize
 import argparse
 
+def runVisualization(drive_num):
+    path = os.path.abspath(os.path.join('data', 'kitti'))
+    Dates = ['2011_09_26']
 
-parser = argparse.ArgumentParser(description='Renders Kitti data with marked positions of objects')
-parser.add_argument('drive_number', type=int)
-args = parser.parse_args()
+    drive_num = "{0:04d}".format(drive_num)
 
-path=os.path.abspath(os.path.join('data','kitti'))
-Dates=['2011_09_26']
+    for date in Dates:
+        data = Kitti.Kitti()
+        model = data.initialize(path, date)
+        Visualizer = visualize.Visualizer(model, drive_num)
+        Visualizer.showVisuals(path, date)
 
-drive_num = "{0:04d}".format(args.drive_number)
+if __name__ == "__main__":
 
-for date in Dates:
-    data=Kitti.Kitti()
-    model=data.initialize(path,date)
-    Visualizer=visualize.Visualizer(model, drive_num)
-    Visualizer.showVisuals(path,date)
-
+    parser = argparse.ArgumentParser(description='Renders Kitti data with marked positions of objects')
+    parser.add_argument('drive_number', type=int)
+    args = parser.parse_args()
+    runVisualization(args.drive_number)
