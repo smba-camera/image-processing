@@ -40,6 +40,9 @@ class Visualizer:
         imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
         img_glob = os.path.join(imagePath, "*.png")
         for pic in glob.glob(img_glob):
+            if not plt.get_fignums():
+                # window has been closed
+                return
             img=cv2.imread(pic,0)
             #print ('new Image:')
             ax1=fig.add_subplot(211)
@@ -62,9 +65,7 @@ class Visualizer:
             ax2.set_xlim([-25,25])
             ax2.set_aspect(1)
             plt.pause(0.001)
-            ax1.remove()
-            plt.draw()
-            plt.clf()
+            fig.clear()
 
             #time.sleep(10)
             i+=1
