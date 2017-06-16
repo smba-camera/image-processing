@@ -1,5 +1,6 @@
 import numpy
 import math
+import numbers
 import image_processing.util
 
 class IntrinsicModel:
@@ -29,12 +30,21 @@ class IntrinsicModel:
         ])
 
 class ExtrinsicModel:
-    def __init__(self, rotationMatrix=None, translationVector=None):
 
-        if rotationMatrix:
-            # rotation is defined by given matrix
-            self.rotationMatrix = numpy.matrix(rotationMatrix)
-            assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
+    def __init__(self, rotation=None, translationVector=None):
+        """Params: [rotation=rotationMatrix or rotationVector]"""
+        if rotation:
+            assert(len(rotation) == 3)
+            if (isinstance(rotation[0], numbers.Number)):
+                # rotation vector defines rotations
+                self.alpha = rotation[0]
+                self.beta = rotation[1]
+                self.gamma = rotation[2]
+            else:
+                assert(len(rotation[0]) == 3)
+                # rotation is defined by given matrix
+                self.rotationMatrix = numpy.matrix(rotation)
+                assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
         else:
             self.alpha = 0 # rotation of x axis
             self.beta = 0 # rotation of y axis
@@ -152,6 +162,7 @@ class CameraModel:
         ]
 
     def projectToWorld(self, coords):
+        # TODO make it work with multiple extrinsic matrices
         assert(len(coords) == 2)
         result = numpy.matrix([coords[0], coords[1], 1]).transpose()
         # intrinsic back calculation

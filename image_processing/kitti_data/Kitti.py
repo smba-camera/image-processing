@@ -36,7 +36,7 @@ class Kitti:
                             self.optical_center_y=float(word)
                         j+=1
         fp.close()
-        self.extrinsic_Model=Models.ExtrinsicModel(rotationMatrix=R_Rect)
+        self.extrinsic_Model=Models.ExtrinsicModel(rotation=R_Rect)
 
     def initVelotoCamParams(self,filepath):
         rot_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -54,7 +54,7 @@ class Kitti:
                         trans_vect[j] = float(word)
                         j+=1
         fp.close()
-        self.Cam_to_Velo_Model = Models.ExtrinsicModel(rotationMatrix=rot_mat, translationVector=trans_vect)
+        self.Cam_to_Velo_Model = Models.ExtrinsicModel(rotation=rot_mat, translationVector=trans_vect)
 
     def initialize(self,path,date,CamNum=0,):
 
