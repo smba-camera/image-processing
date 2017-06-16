@@ -10,10 +10,7 @@ def test_Distance():
     assert(distance(A, B) == 8)
 
 def test_shortestDistance():
-    return 1
-    print("test short distance")
     v = Vector3D([1,1,1] , [0,10,0])
     target_p = [1,31,3]
     shortest_distance = v.shortest_distance(target_p)
     assert(shortest_distance < 3)
-
