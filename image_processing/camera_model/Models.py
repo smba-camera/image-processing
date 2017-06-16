@@ -1,5 +1,6 @@
 import numpy
 import math
+import image_processing.util
 
 class IntrinsicModel:
     # todo: load intrinsic parameters from config file
@@ -74,11 +75,15 @@ class ExtrinsicModel:
             [sinC , cosC , 0],
             [0    , 0    , 1]
         ])
+
         return numpy.matmul(Rx, numpy.matmul(Ry, Rz))
+
+    def getTranslationVector(self):
+        return numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
 
     def getMatrix(self):
         R = self.getRotationMatrix()
-        t = numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
+        t = self.getTranslationVector()
         return numpy.concatenate((R, t), axis=1)
 
 # The Camera Model consists of one intrinsic and at least one extrinsic model
@@ -142,7 +147,20 @@ class CameraModel:
         if (z == 0): return [xz, yz]
 
         return  [
-             xz / z,
-             yz / z
+             float(xz / z),
+             float(yz / z)
         ]
 
+    def projectToWorld(self, coords):
+        assert(len(coords) == 2)
+        result = numpy.matrix([coords[0], coords[1], 1]).transpose()
+        # intrinsic back calculation
+        intr_invert = numpy.linalg.inv(self.intrinsic_model.getMatrix())
+        result = numpy.matmul(intr_invert, result)
+        # extrinsic back calculation
+        for m in self.extrinsic_models:
+            rot_inverted = numpy.linalg.inv(m.getRotationMatrix())
+            translation = m.getTranslationVector() # numpy.matmul(rot_inverted, )
+            vector = numpy.matmul(rot_inverted, result)
+            result = numpy.subtract(vector, translation)
+        return image_processing.util.Vector3D(result, vector)
