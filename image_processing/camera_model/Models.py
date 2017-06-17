@@ -119,7 +119,7 @@ class CameraModel:
             e_mat = numpy.concatenate((e_model.getMatrix(), zero_vect))
             projection_mat = numpy.matmul(projection_mat, e_mat)
 
-        self.projection_matrix = projection_mat
+        return projection_mat
 
     # will set the new extrinsic models and (if 'prepare_projection_matrix' is set) precalculate the projection
     def apply_new_extrinsic_models(self, ems):
@@ -132,7 +132,7 @@ class CameraModel:
         else:
             self.extrinsic_models.append(ExtrinsicModel())
         if self.prepare_projection_matrix:
-            self.calculate_projection_matrix()
+            self.projection_matrix = self.calculate_projection_matrix()
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
