@@ -175,3 +175,23 @@ class CameraModel:
             vector = numpy.matmul(rot_inverted, result)
             result = numpy.subtract(vector, translation)
         return image_processing.util.Vector3D(result, vector)
+
+
+    def projectToWorld_nonWorking(self, coords):
+        # Uses projection matrix - tries to solve multiple extrinsic matrix problem
+        assert(len(coords) == 2)
+
+        if (hasattr(self, 'projection_matrix')):
+            proj_mat = self.projection_matrix
+        else:
+            proj_mat = self.calculate_projection_matrix()
+        proj_mat = numpy.concatenate((proj_mat, numpy.matrix([0,0,0,1])))
+        proj_mat_inv = numpy.linalg.inv(proj_mat)
+
+        img_coord = numpy.matrix([coords[0], coords[1], 1, 1]).transpose()
+        real_coord_long = numpy.matmul(proj_mat_inv, img_coord)
+        real_coord = numpy.take(real_coord_long, [0,1,2]).transpose()
+
+        start_point = self.extrinsic_models[0].getTranslationVector()
+        vector = real_coord - start_point
+        return image_processing.util.Vector3D(start_point, vector)
