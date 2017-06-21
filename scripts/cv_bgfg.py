@@ -8,7 +8,7 @@ fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel1 = np.ones((2,2),np.uint8)
 kernel2 = np.ones((2,2),np.uint8)
 
-images_dir = "C:\Users\Paul\Desktop\SS2017\SMBAD\source\scripts\weather-image\data"
+images_dir = "C:\SS2017\SMBAD\source\scripts\weather-image\data"
 
 images = []
 for file in os.listdir(images_dir):
