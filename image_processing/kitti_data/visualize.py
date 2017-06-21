@@ -1,5 +1,5 @@
-import cv2
 import glob,os
+import matplotlib.image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from .vehicle_positions import VehiclePositions
@@ -43,7 +43,7 @@ class Visualizer:
             if not plt.get_fignums():
                 # window has been closed
                 return
-            img=cv2.imread(pic,0)
+            img=matplotlib.image.imread(pic)
             #print ('new Image:')
             ax1=fig.add_subplot(211)
             ax1.imshow(img,cmap='gray')
@@ -64,7 +64,7 @@ class Visualizer:
             ax2.set_ylim([0,100])
             ax2.set_xlim([-25,25])
             ax2.set_aspect(1)
-            plt.pause(0.001)
+            plt.pause(0.00000001)
             fig.clear()
 
             #time.sleep(10)

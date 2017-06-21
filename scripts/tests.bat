@@ -1,1 +1,1 @@
-nosetests
+nosetests --nocapture

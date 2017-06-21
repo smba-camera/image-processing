@@ -1,5 +1,7 @@
 import numpy
 import math
+import numbers
+import image_processing.util
 
 class IntrinsicModel:
     # todo: load intrinsic parameters from config file
@@ -28,12 +30,21 @@ class IntrinsicModel:
         ])
 
 class ExtrinsicModel:
-    def __init__(self, rotationMatrix=None, translationVector=None):
 
-        if rotationMatrix:
-            # rotation is defined by given matrix
-            self.rotationMatrix = numpy.matrix(rotationMatrix)
-            assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
+    def __init__(self, rotation=None, translationVector=None):
+        """Params: [rotation=rotationMatrix or rotationVector]"""
+        if rotation:
+            assert(len(rotation) == 3)
+            if (isinstance(rotation[0], numbers.Number)):
+                # rotation vector defines rotations
+                self.alpha = rotation[0]
+                self.beta = rotation[1]
+                self.gamma = rotation[2]
+            else:
+                assert(len(rotation[0]) == 3)
+                # rotation is defined by given matrix
+                self.rotationMatrix = numpy.matrix(rotation)
+                assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
         else:
             self.alpha = 0 # rotation of x axis
             self.beta = 0 # rotation of y axis
@@ -74,11 +85,15 @@ class ExtrinsicModel:
             [sinC , cosC , 0],
             [0    , 0    , 1]
         ])
+
         return numpy.matmul(Rx, numpy.matmul(Ry, Rz))
+
+    def getTranslationVector(self):
+        return numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
 
     def getMatrix(self):
         R = self.getRotationMatrix()
-        t = numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
+        t = self.getTranslationVector()
         return numpy.concatenate((R, t), axis=1)
 
 # The Camera Model consists of one intrinsic and at least one extrinsic model
@@ -104,7 +119,7 @@ class CameraModel:
             e_mat = numpy.concatenate((e_model.getMatrix(), zero_vect))
             projection_mat = numpy.matmul(projection_mat, e_mat)
 
-        self.projection_matrix = projection_mat
+        return projection_mat
 
     # will set the new extrinsic models and (if 'prepare_projection_matrix' is set) precalculate the projection
     def apply_new_extrinsic_models(self, ems):
@@ -117,7 +132,7 @@ class CameraModel:
         else:
             self.extrinsic_models.append(ExtrinsicModel())
         if self.prepare_projection_matrix:
-            self.calculate_projection_matrix()
+            self.projection_matrix = self.calculate_projection_matrix()
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
@@ -142,7 +157,41 @@ class CameraModel:
         if (z == 0): return [xz, yz]
 
         return  [
-             xz / z,
-             yz / z
+             float(xz / z),
+             float(yz / z)
         ]
 
+    def projectToWorld(self, coords):
+        # TODO make it work with multiple extrinsic matrices
+        assert(len(coords) == 2)
+        result = numpy.matrix([coords[0], coords[1], 1]).transpose()
+        # intrinsic back calculation
+        intr_invert = numpy.linalg.inv(self.intrinsic_model.getMatrix())
+        result = numpy.matmul(intr_invert, result)
+        # extrinsic back calculation
+        for m in self.extrinsic_models:
+            rot_inverted = numpy.linalg.inv(m.getRotationMatrix())
+            translation = m.getTranslationVector() # numpy.matmul(rot_inverted, )
+            vector = numpy.matmul(rot_inverted, result)
+            result = numpy.subtract(vector, translation)
+        return image_processing.util.Vector3D(result, vector)
+
+
+    def projectToWorld_nonWorking(self, coords):
+        # Uses projection matrix - tries to solve multiple extrinsic matrix problem
+        assert(len(coords) == 2)
+
+        if (hasattr(self, 'projection_matrix')):
+            proj_mat = self.projection_matrix
+        else:
+            proj_mat = self.calculate_projection_matrix()
+        proj_mat = numpy.concatenate((proj_mat, numpy.matrix([0,0,0,1])))
+        proj_mat_inv = numpy.linalg.inv(proj_mat)
+
+        img_coord = numpy.matrix([coords[0], coords[1], 1, 1]).transpose()
+        real_coord_long = numpy.matmul(proj_mat_inv, img_coord)
+        real_coord = numpy.take(real_coord_long, [0,1,2]).transpose()
+
+        start_point = self.extrinsic_models[0].getTranslationVector()
+        vector = real_coord - start_point
+        return image_processing.util.Vector3D(start_point, vector)

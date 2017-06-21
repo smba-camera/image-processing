@@ -110,3 +110,5 @@ src/virtual_env
 
 #data
 data
+# performance analyzation logfile
+/performance.txt
