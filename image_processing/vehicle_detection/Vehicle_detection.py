@@ -1,4 +1,4 @@
-import cv2
+import opencv as cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -271,3 +271,5 @@ plt.subplot(1,2,2)
 plt.imshow(final)
 plt.axis('off')
 plt.title("With Boxes")
+
+cv2.waitKey(0)
