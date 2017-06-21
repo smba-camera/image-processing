@@ -106,6 +106,7 @@ ENV/
 
 # virtual env
 src/virtual_env
+src/image_processing/hidrometeor_detection/virtual_env
 *.ipynb
 
 #data
