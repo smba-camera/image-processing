@@ -11,11 +11,32 @@ def test_projection_to_image():
 def test_projection_to_image_and_back():
     cm = Models.CameraModel()
     real_coords = [10, 10, 10]
+    #print("\n##################\ntest_projection_to_image_and_back: {}".format(real_coords))
+
     img_coords = cm.projectToImage(real_coords)
     real_coord_vector = cm.projectToWorld(img_coords)
 
     distance_from_real_coords = real_coord_vector.shortest_distance(real_coords)
+    closest_coord = real_coord_vector.closest_point(real_coords)
+    #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
     assert(distance_from_real_coords < 1)
+
+def test_projectionToImageAndBack_with_translation():
+    e1 = Models.ExtrinsicModel(
+        translationVector=[1,3,4])
+    extrinsic_models = [e1]
+    cm = Models.CameraModel(em=extrinsic_models)
+    real_coords = [70, 30, -70]
+    #print("\n##################\ntest_projectionToImageAndBack_with_translation: {}".format(real_coords))
+
+    img_coords = cm.projectToImage(real_coords)
+    real_coord_vector = cm.projectToWorld(img_coords)
+
+    distance_from_real_coords = real_coord_vector.shortest_distance(real_coords)
+    closest_coord = real_coord_vector.closest_point(real_coords)
+    #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
+    expected_max_distance = 4
+    assert(distance_from_real_coords < expected_max_distance)
 
 def test_projectionToImageAndBack_with_rotated_extrinsicModel():
     e1 = Models.ExtrinsicModel(
@@ -23,12 +44,15 @@ def test_projectionToImageAndBack_with_rotated_extrinsicModel():
         translationVector=[1,3,4])
     extrinsic_models = [e1]
     cm = Models.CameraModel(em=extrinsic_models)
-
     real_coords = [70, 30, -70]
+    #print("\n##################\ntest_projectionToImageAndBack_with_rotated_extrinsicModel: {}".format(real_coords))
+
     img_coords = cm.projectToImage(real_coords)
     real_coord_vector = cm.projectToWorld(img_coords)
 
     distance_from_real_coords = real_coord_vector.shortest_distance(real_coords)
+    closest_coord = real_coord_vector.closest_point(real_coords)
+    #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
     expected_max_distance = 4
     assert(distance_from_real_coords < expected_max_distance)
 
@@ -41,11 +65,14 @@ def test_projectionToImageAndBack_with_multiple_extrinsicModels():
         translationVector=[7,8,9])
     extrinsic_models = [e1, e2]
     cm = Models.CameraModel(em=extrinsic_models)
-
     real_coords = [10, 10, 10]
+    #print("\n##################\ntest_projectionToImageAndBack_with_multiple_extrinsicModels: {}".format(real_coords))
+
     img_coords = cm.projectToImage(real_coords)
     real_coord_vector = cm.projectToWorld(img_coords)
 
     distance_from_real_coords = real_coord_vector.shortest_distance(real_coords)
+    closest_coord = real_coord_vector.closest_point(real_coords)
+    #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
     expected_max_distance = 4
     assert(distance_from_real_coords < expected_max_distance)
