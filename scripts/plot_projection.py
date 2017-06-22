@@ -38,6 +38,9 @@ def plot_in_3d(x, y, z, vector, colors=['b']):
     fig = pyplot.figure()
     # axis
     plot = fig.add_subplot(111, projection='3d')
+    plot.set_xlabel('X-axis')
+    plot.set_ylabel('Y-axis')
+    plot.set_zlabel('Z-axis')
     # lines to points
     # X-line
     [plot.plot([0, dot_x], [dot_y, dot_y], [dot_z, dot_z], '-', linewidth=2, c='b', alpha=0.3) for dot_x, dot_y, dot_z in
