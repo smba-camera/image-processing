@@ -1,3 +1,5 @@
 numpy
 nose
 matplotlib
+tensorflow
+keras
