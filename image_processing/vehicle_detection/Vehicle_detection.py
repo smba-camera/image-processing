@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import glob
+#import time
 #matplotlib inline
 
 import keras
@@ -13,6 +14,7 @@ from keras.layers.core import Flatten, Dense, Activation, Reshape
 
 # Pre trained weights require this ordering
 keras.backend.set_image_dim_ordering('th')
+
 
 
 def get_model():
@@ -77,7 +79,10 @@ def get_model():
 # Preprocessing
 
 def crop_and_resize(image):
-    cropped = image[300:650,500:,:]
+    #plt.imshow(image)
+    #time.sleep(2)
+#    cropped = image[300:650,500:,:]
+    cropped=image
     return cv2.resize(cropped, (448,448))
 
 def normalize(image):
@@ -248,12 +253,27 @@ def draw_boxes(boxes, im, crop_dim):
 
     return imgcv1
 
-from .utils import load_weights
+def load_weights(model, yolo_weight_file):
+    data = np.fromfile(yolo_weight_file, np.float32)
+    data = data[4:]
+
+    index = 0
+    for layer in model.layers:
+        shape = [w.shape for w in layer.get_weights()]
+        if shape != []:
+            kshape, bshape = shape
+            bia = data[index:index + np.prod(bshape)].reshape(bshape)
+            index += np.prod(bshape)
+            ker = data[index:index + np.prod(kshape)].reshape(kshape)
+            index += np.prod(kshape)
+            layer.set_weights([ker, bia])
+
+
 
 model = get_model()
 load_weights(model,'yolo-tiny.weights')
 
-test_image = mpimg.imread('test_images/test1.jpg')
+test_image = mpimg.imread('0000000000.png')
 pre_processed = preprocess(test_image)
 batch = np.expand_dims(pre_processed, axis=0)
 batch_output = model.predict(batch)
@@ -272,4 +292,4 @@ plt.imshow(final)
 plt.axis('off')
 plt.title("With Boxes")
 
-cv2.waitKey(0)
+#cv2.waitKey(0)
