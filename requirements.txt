@@ -1,5 +1,6 @@
 numpy
 nose
 matplotlib
+opencv-python
 tensorflow
 keras
