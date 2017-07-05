@@ -9,19 +9,22 @@ import numpy
 
 def projection():
 
-    camera_position = [10,10,10]
-    rotation = [math.pi/2, math.pi, math.pi/4]
-    em = camera_model.ExtrinsicModel(rotation=rotation)
+    camera_position = [5,1,1]
+    #camera_position = [0,0,0]
+    rotation_vector = [10,1,1]
+    #rotation = [0,0,0]
+    em = camera_model.ExtrinsicModel(direction=rotation_vector)
     em_translation = numpy.matmul(em.getRotationMatrix(), numpy.matrix(camera_position).transpose()).transpose().tolist()[0]
-    em = camera_model.ExtrinsicModel(translationVector=em_translation, rotation=rotation)
+    em = camera_model.ExtrinsicModel(translationVector=em_translation, direction=rotation_vector)
     cm = camera_model.CameraModel(em=em)
 
-    real_coords = [20,20,20]
+    real_coords = [20,20,10]
 
     img_coords = cm.projectToImage(real_coords)
     real_coords_calc = cm.projectToWorld(img_coords)
+    real_coords_calc.length_factor(1)
     closest_point = real_coords_calc.closest_point(real_coords).transpose().tolist()[0]
-    print("closestp: {}, real_coord: {}".format(closest_point, real_coords))
+    print("closestp: {}, real_coord: {}\nVector: {}".format(closest_point, real_coords, real_coords_calc.vector))
 
     x = [real_coords[0], camera_position[0], closest_point[0]]
     y = [real_coords[1], camera_position[1], closest_point[1]]
@@ -30,7 +33,7 @@ def projection():
     # translation: blue
     # real coord : cyan
     # closestpoint:yellow
-    color = ['b', 'y', 'y']
+    color = ['b', 'y', 'c']
 
     plot_in_3d(x, y, z, real_coords_calc, colors=color)
 

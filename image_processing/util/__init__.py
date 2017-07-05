@@ -17,6 +17,11 @@ class Vector3D:
     def length(self):
         return distance(self.vector, [0] * len(self.vector))
 
+    def length_factor(self, factor):
+        self.vector[0] *= factor
+        self.vector[1] *= factor
+        self.vector[2] *= factor
+
     def closest_point(self, target_point):
         min_step_size = 0.0001
         normalized_min_step_size = min_step_size / self.length()
@@ -78,6 +83,7 @@ class Vector3D:
     def shortest_distance(self, target_point):
         p = self.closest_point(target_point)
         return distance(p, target_point)
+
 
 
 
