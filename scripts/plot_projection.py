@@ -7,11 +7,12 @@ import image_processing.camera_model as camera_model
 import math
 import numpy
 
-def projection():
 
+
+def projection(impl=0):
     camera_position = [5,1,1]
     #camera_position = [0,0,0]
-    rotation_vector = [10,1,1]
+    rotation_vector = [3,0,0]
     #rotation = [0,0,0]
     em = camera_model.ExtrinsicModel(direction=rotation_vector)
     em_translation = numpy.matmul(em.getRotationMatrix(), numpy.matrix(camera_position).transpose()).transpose().tolist()[0]
@@ -21,14 +22,16 @@ def projection():
     real_coords = [20,20,10]
 
     img_coords = cm.projectToImage(real_coords)
-    real_coords_calc = cm.projectToWorld(img_coords)
+    real_coords_calc = cm.projectToWorld(img_coords, implementation=impl)
     real_coords_calc.length_factor(1)
     closest_point = real_coords_calc.closest_point(real_coords).transpose().tolist()[0]
-    print("closestp: {}, real_coord: {}\nVector: {}".format(closest_point, real_coords, real_coords_calc.vector))
+    print("camera_position: {}\nreal_coord: {}\nclosestp: {}, \nVector: {}\n".format(camera_position, closest_point, real_coords, real_coords_calc.vector))
 
     x = [real_coords[0], camera_position[0], closest_point[0]]
     y = [real_coords[1], camera_position[1], closest_point[1]]
     z = [real_coords[2], camera_position[2], closest_point[2]]
+
+    print("x: {}\nY: {}\nZ: {}\n".format(x,y,z))
 
     # translation: blue
     # real coord : cyan
@@ -56,17 +59,17 @@ def plot_in_3d(x, y, z, vector, colors=['b']):
      zip(x, y, z)]
 
     if vector:
-        vector_length_factor = 1
+
         start_point = vector.start_point.transpose().tolist()[0]
-        next_point = (vector.start_point + (vector.vector * vector_length_factor)).transpose().tolist()[0]
+        next_point = (vector.start_point + vector.vector).transpose().tolist()[0]
         p = list(zip(start_point,next_point))
         plot.plot(p[0], p[1], p[2], '-', linewidth=3, c='r')
         plot.plot([start_point[0]],[start_point[1]],[start_point[2]], marker='o', c='k')
-
+    print("scatter")
     # points
     plot.scatter(x, y, z, marker='o', c=colors, s=100, alpha=1)
-    fig.show()
-    input()
+    #pyplot.ioff()
+    pyplot.show()
 
 def test_plot():
     x = [0, 2, -3, -1.5]
@@ -75,5 +78,6 @@ def test_plot():
     plot_in_3d(x,y,z)
 
 if __name__ == "__main__":
-    projection()
+    for i in range(1):
+        projection(impl=i)
 

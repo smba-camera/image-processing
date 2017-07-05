@@ -22,6 +22,10 @@ class Vector3D:
         self.vector[1] *= factor
         self.vector[2] *= factor
 
+    def norm(self):
+        length = numpy.linalg.norm(self.vector)
+        self.length_factor(1/length)
+
     def closest_point(self, target_point):
         min_step_size = 0.0001
         normalized_min_step_size = min_step_size / self.length()
