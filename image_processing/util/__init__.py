@@ -7,6 +7,8 @@ def distance(A, B):
         return  (a-b) ** 2
     return math.sqrt(sum(map(diff_pow, zip(A, B))))
 
+
+
 class Vector3D:
     def __init__(self, start_point, vector):
         self.start_point = numpy.array(start_point)
@@ -40,9 +42,44 @@ class Vector3D:
 
         return recursive_search(target_point, self.start_point, 10)
 
+    def closest_points_to_line(self, line):
+        u = self.vector
+        v = line.vector
+        w = self.start_point - line.start_point
+        a = numpy.dot(u,u)
+        b = numpy.dot(u,v)
+        c = numpy.dot(v,v)
+        d = numpy.dot(u,w)
+        e = numpy.dot(u,w)
+        D = a*c - b*b
+
+        epsilon = 0.0000001
+        if D < epsilon:
+            # intersection of both lines?
+            sc = 0.0
+            tc = d/b if b>c else e/c
+        else:
+            sc = (b*e - c*d) / D
+            tc = (a*e - b*d) / D
+        dP = w + (sc * u) - (tc * v)
+
+        p1 = self.start_point + sc * self.vector
+        p2 = line.start_point + tc * v
+
+        return (p1, p2)
+
+        #return numpy.linalg.norm(dP)
+
+    def distance_to_line(self, line):
+        points = self.closest_points_to_line(line)
+        dist = numpy.linalg.norm(points[0] - points[1])
+        return dist
+
     def shortest_distance(self, target_point):
         p = self.closest_point(target_point)
         return distance(p, target_point)
+
+
 
 if __name__ == "__main__":
 
