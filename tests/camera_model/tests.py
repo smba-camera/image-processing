@@ -1,5 +1,6 @@
 import math
 import image_processing.camera_model.Models as Models
+import numpy
 
 def test_projection_to_image():
     cm = Models.CameraModel()
@@ -76,3 +77,16 @@ def test_projectionToImageAndBack_with_multiple_extrinsicModels():
     #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
     expected_max_distance = 4
     assert(distance_from_real_coords < expected_max_distance)
+
+def test_roation_from_direction():
+    direction = [2,3,-4]
+    e = Models.ExtrinsicModel(direction=direction)
+    rot_mat = e.getRotationMatrix()
+    coords = [5,5,5]
+    projected_coords = numpy.matmul(rot_mat, direction)
+    exp_length = numpy.linalg.norm(coords)
+    length =  numpy.linalg.norm(projected_coords)
+    print("\nLength 1: {}, Length2: {}".format(exp_length, length))
+    print(projected_coords)
+    #assert(length == exp_length)
+    assert((projected_coords == [1,1,1]).all())

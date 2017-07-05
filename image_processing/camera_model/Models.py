@@ -3,6 +3,8 @@ import math
 import numbers
 import image_processing.util
 
+
+
 class IntrinsicModel:
     # todo: load intrinsic parameters from config file
     # https://docs.python.org/3/library/configparser.html
@@ -44,7 +46,7 @@ class IntrinsicModel:
 
 class ExtrinsicModel:
 
-    def __init__(self, rotation=None, translationVector=None):
+    def __init__(self, rotation=None, direction=None, translationVector=None):
         """Params: [rotation=rotationMatrix or rotationVector]"""
         if rotation:
             assert(len(rotation) == 3)
@@ -59,9 +61,22 @@ class ExtrinsicModel:
                 self.rotationMatrix = numpy.matrix(rotation)
                 assert(self.rotationMatrix.shape[0] == 3 and self.rotationMatrix.shape[1] == 3)
         else:
-            self.alpha = 0 # rotation of x axis
-            self.beta = 0 # rotation of y axis
-            self.gamma = 0 # rotation of z axis
+            if direction:
+                def unzero(val):
+                    if val==0:
+                        return 0.00000001
+                    return val
+                # rotation is given as direction
+                self.rotationMatrix = numpy.linalg.inv(
+                    [
+                        [unzero(direction[0]),0,0],
+                        [0,unzero(direction[1]),0],
+                        [0,0,unzero(direction[2])]
+                    ])
+            else:
+                self.alpha = 0 # rotation of x axis
+                self.beta = 0 # rotation of y axis
+                self.gamma = 0 # rotation of z axis
         if translationVector:
             assert(len(translationVector) == 3)
             self.translation_x = translationVector[0]  # camera position in real world
