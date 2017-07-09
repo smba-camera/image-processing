@@ -14,12 +14,19 @@ class IntrinsicModel:
         self.ratio_image_coordinate_x = ratio_image_coordinate_x # ratio between real world coordinates and image coordinates
         self.ratio_image_coordinate_y = ratio_image_coordinate_y
         self.pixel_skew = pixel_skew # pixels are not rectangular
+
         self.fov_horizontal = fov_horizontal
         self.fov_vertical = fov_vertical
 
         self.pixel_size = pixel_size
         self.image_width = image_width
         self.image_height = image_height
+
+        self.checkParameters()
+
+    def checkParameters(self):
+        assert(abs(self.fov_horizontal)<(2*math.pi))
+        assert(abs(self.fov_vertical)<(2*math.pi))
 
     def image_pixel_width(self):
         return self.image_width / self.pixel_size
