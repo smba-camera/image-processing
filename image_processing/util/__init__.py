@@ -35,16 +35,18 @@ class Vector3D:
         # iterative step by step of shortest distance
         def recursive_search(target, X, step_size):
             # todo newton method for speed up
-            if math.fabs(step_size ) < normalized_min_step_size: return X    # step size has reached minimum
+            if math.fabs(step_size ) < normalized_min_step_size:
+                return X    # step size has reached minimum
             curr_distance = distance(target, X)
-            if curr_distance == 0: return X # directly hit target point
+            if curr_distance == 0:
+                return X # directly hit target point
             curr_point = X
             while 1:
                 next_point = calc_next_point(curr_point, step_size)
                 next_distance = distance(target, next_point)
                 if next_distance > curr_distance:
                     # we passed shortest distance - turn around
-                    return recursive_search(target, next_point, -step_size/2)
+                    return recursive_search(target, next_point, -step_size/2.0)
                 # next iteration
                 curr_point = next_point
                 curr_distance = next_distance
@@ -52,8 +54,8 @@ class Vector3D:
         return recursive_search(target_point, self.start_point, 10)
 
     def closest_points_to_line(self, line):
-        u = self.vector
-        v = line.vector
+        u = self.vector.transpose().tolist()[0] # convert from numpy matrix to normal list
+        v = line.vector.transpose().tolist()[0]
         w = self.start_point - line.start_point
         a = numpy.dot(u,u)
         b = numpy.dot(u,v)
@@ -70,7 +72,7 @@ class Vector3D:
         else:
             sc = (b*e - c*d) / D
             tc = (a*e - b*d) / D
-        dP = w + (sc * u) - (tc * v)
+        #dP = w + (sc * u) - (tc * v)
 
         p1 = self.start_point + sc * self.vector
         p2 = line.start_point + tc * v

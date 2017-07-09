@@ -87,7 +87,7 @@ class ExtrinsicModel:
             assert (len(position) == 3)
 
             translation = numpy.array(numpy.matmul(self.getRotationMatrix(), position))
-            print("positiontranslation: {}\n".format(translation))
+            #print("positiontranslation: {}\n".format(translation))
             self.translation_x = translation[0][0]
             self.translation_y = translation[0][1]
             self.translation_z = translation[0][2]
@@ -227,6 +227,7 @@ class CameraModel:
         # print("Result: \n{}\n".format(result))
         # print("Translation: \n{}\n".format(translation_inverted))
         # print("Vector after: \n{}\n".format(vector))
+
         v = image_processing.util.Vector3D(result, vector)
         v.norm()
         return v
