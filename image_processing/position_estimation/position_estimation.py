@@ -6,7 +6,7 @@ class PositionEstimationStereoVision():
         self.camera_model_one = camera_model_one
         self.camera_model_two = camera_model_two
 
-    def estimate_range_stereo(self, pos_img_one, pos_image_two):
+    def estimate_position(self, pos_img_one, pos_image_two):
         vect_one = self.camera_model_one.projectToWorld(pos_img_one)
         vect_two = self.camera_model_two.projectToWorld(pos_image_two)
 
@@ -15,6 +15,9 @@ class PositionEstimationStereoVision():
         vect = p1-p2
         vect *= 0.5
         point_in_between = p1 + vect
+        return point_in_between
 
-        range_vect = point_in_between - self.camera_model_one.getCameraPosition()
+    def estimate_range_stereo(self, pos_img_one, pos_image_two):
+        estimated_pos = self.estimate_position(pos_img_one, pos_image_two)
+        range_vect = estimated_pos - self.camera_model_one.getCameraPosition()
         return numpy.linalg.norm(range_vect)
