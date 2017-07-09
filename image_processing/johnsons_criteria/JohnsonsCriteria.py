@@ -3,6 +3,21 @@ import numpy as np
 import math
 from image_processing.simulation import Car
 
+'''
+class JohnsonCriteria:
+    
+    def __init__(self):
+        self.camera_model = None#CameraModel()
+
+    def isVisible(self, car):
+        return True
+
+    def amountOfPixelsOnTarget(self, car):
+        img_coord = self.camera_model.projectToImage(car.coords)
+        return 15
+'''
+
+
 # pixels on target according to the Johnson's Criteria optimistic an pessimistic pixels
 # it is multiplied by 2 because it detects in line pairs and the minimum line pair in pixels equals to 2 pixels
 johnsons_criteria = [
