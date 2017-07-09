@@ -1,5 +1,5 @@
 from random import randint as rand
-import Car
+from Car import *
 
 
 class Playground(object):

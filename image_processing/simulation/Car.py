@@ -1,4 +1,4 @@
-import Image
+from Image import *
 
 class Car:
 

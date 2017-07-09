@@ -44,6 +44,8 @@ class IntrinsicModel:
             [0     , 0    , 1]
         ])
 
+
+
 class ExtrinsicModel:
 
     def __init__(self, rotation=None, direction=None, translationVector=None):

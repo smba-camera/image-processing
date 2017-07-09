@@ -36,15 +36,16 @@ def getTargetVisibleSize(width,length,carRotation,carPositionAngle,carCoordinate
     targetVisibleSize = width*np.cos(theta)+length*np.sin(theta)
     return targetVisibleSize
 
-def estimateRange(goal="detection"):
+def getDistance(target,image_pixels, visibleTargetArea, fov):
+    return ((image_pixels / (target / visibleTargetArea)) * 360 / fov) / (2 * np.pi)
 
-    im = IntrinsicModel(focal_length=1,optical_center_x=0,optical_center_y=0,
+def estimateRange(goal="detection",
+                  im = IntrinsicModel(focal_length=1,optical_center_x=0,optical_center_y=0,
                         ratio_image_coordinate_x=1,ratio_image_coordinate_y=1,pixel_skew=0,
                         fov_horizontal=np.pi/6,fov_vertical=np.pi/6,
-                        pixel_size=1,image_width=640,image_height=480)
-
-    car = Car(x=20,y=15,length=4.7,width=1.9,theta=90)
-
+                        pixel_size=1,image_width=640,image_height=480),
+                  car=Car(x=20, y=15, length=4.7, width=1.9, theta=90)
+                  ):
     car_length = car.length  # m
     car_width = car.width  # m
     car_rotation = car.theta # degrees from Y axis 0 = 180 = horizontal, 90 = vertical
@@ -57,10 +58,6 @@ def estimateRange(goal="detection"):
     if (carAngle < 0):  carAngle = carAngle + 360
     if (isInFieldOfView(im.fov_horizontal,carAngle)):
         visibleTargetArea = getTargetVisibleSize(car_length,car_width,car_rotation,carAngle,car_position)
-
-        def getDistance(target):
-            return ((im.image_width / (target / visibleTargetArea)) * 360 / im.fov_horizontal) / (2 * np.pi)
-
-        return getDistance(johnsons_criteria[goal])
+        return getDistance(car_pixels_per_m[goal],im.image_width,visibleTargetArea,im.fov_horizontal)
     else:
         return -1
