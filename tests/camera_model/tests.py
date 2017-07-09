@@ -1,9 +1,9 @@
 import math
-import image_processing.camera_model.Models as Models
+from image_processing.camera_model import CameraModel, ExtrinsicModel, IntrinsicModel
 import numpy
 
 def test_projection_to_image():
-    cm = Models.CameraModel()
+    cm = CameraModel()
     ic = cm.projectToImage([1,1,1])
     maxDiff = 0.000001
     #print("test_projection_to_image:\n{}\n".format(ic))
@@ -13,7 +13,7 @@ def test_projection_to_image():
     assert(len(ic) == 2)
 
 def test_projection_to_image_and_back():
-    cm = Models.CameraModel()
+    cm = CameraModel()
     real_coords = [10, 10, 10]
     #print("\n##################\ntest_projection_to_image_and_back: {}".format(real_coords))
 
@@ -26,10 +26,10 @@ def test_projection_to_image_and_back():
     assert(distance_from_real_coords < 1)
 
 def test_projectionToImageAndBack_with_translation():
-    e1 = Models.ExtrinsicModel(
+    e1 = ExtrinsicModel(
         translationVector=[1,3,4])
     extrinsic_models = [e1]
-    cm = Models.CameraModel(em=extrinsic_models)
+    cm = CameraModel(em=extrinsic_models)
     real_coords = [70, 30, -70]
     #print("\n##################\ntest_projectionToImageAndBack_with_translation: {}".format(real_coords))
 
@@ -43,11 +43,11 @@ def test_projectionToImageAndBack_with_translation():
     assert(distance_from_real_coords < expected_max_distance)
 
 def test_projectionToImageAndBack_with_rotated_extrinsicModel():
-    e1 = Models.ExtrinsicModel(
+    e1 = ExtrinsicModel(
         rotation=[math.pi/2, math.pi, 0],
         translationVector=[1,3,4])
     extrinsic_models = [e1]
-    cm = Models.CameraModel(em=extrinsic_models)
+    cm = CameraModel(em=extrinsic_models)
     real_coords = [70, 30, -70]
     #print("\n##################\ntest_projectionToImageAndBack_with_rotated_extrinsicModel: {}".format(real_coords))
 
@@ -61,14 +61,14 @@ def test_projectionToImageAndBack_with_rotated_extrinsicModel():
     assert(distance_from_real_coords < expected_max_distance)
 
 def test_projectionToImageAndBack_with_multiple_extrinsicModels():
-    e1 = Models.ExtrinsicModel(
+    e1 = ExtrinsicModel(
         rotation=[math.pi/2, math.pi, 0],
         translationVector=[1,3,4])
-    e2 = Models.ExtrinsicModel(
+    e2 = ExtrinsicModel(
         rotation=[math.pi*2, 0, math.pi],
         translationVector=[7,8,9])
     extrinsic_models = [e1, e2]
-    cm = Models.CameraModel(em=extrinsic_models)
+    cm = CameraModel(em=extrinsic_models)
     real_coords = [10, 10, 10]
     #print("\n##################\ntest_projectionToImageAndBack_with_multiple_extrinsicModels: {}".format(real_coords))
 
@@ -78,12 +78,15 @@ def test_projectionToImageAndBack_with_multiple_extrinsicModels():
     distance_from_real_coords = real_coord_vector.shortest_distance(real_coords)
     closest_coord = real_coord_vector.closest_point(real_coords)
     #print("Closest point: \n{}\nSmallest Distance: \n{}\n".format(closest_coord, distance_from_real_coords))
-    expected_max_distance = 4
-    assert(distance_from_real_coords < expected_max_distance)
+    expected_max_distance = 1
+    success = distance_from_real_coords < expected_max_distance
+    print("test_projectionToImageAndBack_with_multiple_extrinsicModels:\nDistanceFromRealCoords: {}\nExpectedDistance:{}\n"
+          .format(distance_from_real_coords, expected_max_distance))
+    assert(success)
 
 def test_roation_from_direction():
     direction = [2,3,-4]
-    e = Models.ExtrinsicModel(direction=direction)
+    e = ExtrinsicModel(direction=direction)
     rot_mat = e.getRotationMatrix()
     coords = [5,5,5]
     projected_coords = numpy.matmul(rot_mat, direction)
