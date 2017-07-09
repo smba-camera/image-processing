@@ -56,9 +56,9 @@ class CameraModel:
 
     def projectToImage(self, coords):
         assert(len(coords) == 3)
-        if (not self.isInFieldOfView(coords)):
-            return None
-        
+        #if (not self.isInFieldOfView(coords)):
+        #    return None
+
         pos_vect = numpy.matrix(coords).transpose()
         one_vect = numpy.matrix([1])
 
