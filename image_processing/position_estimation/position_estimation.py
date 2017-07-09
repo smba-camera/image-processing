@@ -1,7 +1,7 @@
 import numpy
 import image_processing.camera_model
 
-class RangeEstimationStereoVision():
+class PositionEstimationStereoVision():
     def __init__(self, camera_model_one, camera_model_two):
         self.camera_model_one = camera_model_one
         self.camera_model_two = camera_model_two
