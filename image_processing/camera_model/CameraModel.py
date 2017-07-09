@@ -179,3 +179,7 @@ class CameraModel:
         rot_inv = numpy.linalg.inv(self.extrinsic_models[0].getRotationMatrix())
         camera_position = numpy.matmul(rot_inv, vect_trans)
         return camera_position
+
+    def getCameraDirection(self):
+        rot_inv = numpy.linalg.inv(self.extrinsic_models[0].getRotationMatrix())
+        return numpy.matmul(rot_inv, [1,1,1])
