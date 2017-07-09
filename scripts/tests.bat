@@ -1,1 +1,1 @@
-nosetests --nocapture
+python -m nose2
