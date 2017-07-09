@@ -138,7 +138,7 @@ class CameraModel:
     # precalculate projection matrix for faster projection
     def calculate_projection_matrix(self):
         one_vect_short = numpy.matrix([1,1,1])
-        zero_vect = numpy.matrix([0,0,0,0.00000000001])
+        zero_vect = numpy.matrix([0,0,0,1])
 
         intr_mat = numpy.concatenate((self.intrinsic_model.getMatrix(), one_vect_short.transpose()), axis=1)
         projection_mat = intr_mat

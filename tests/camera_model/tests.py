@@ -4,9 +4,12 @@ import numpy
 
 def test_projection_to_image():
     cm = Models.CameraModel()
-    ic = cm.projectToImage([0,0,0])
-    assert(ic[0] == 0)
-    assert(ic[1] == 0)
+    ic = cm.projectToImage([1,1,1])
+    maxDiff = 0.000001
+    #print("test_projection_to_image:\n{}\n".format(ic))
+    exp_coords = [1.0, 1.0]
+    assert(abs(ic[0] - exp_coords[0]) < maxDiff)
+    assert(abs(ic[1] - exp_coords[1]) < maxDiff)
     assert(len(ic) == 2)
 
 def test_projection_to_image_and_back():
