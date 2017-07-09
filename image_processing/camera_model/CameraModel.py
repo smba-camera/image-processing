@@ -42,8 +42,23 @@ class CameraModel:
         if self.prepare_projection_matrix:
             self.projection_matrix = self.calculate_projection_matrix()
 
+    def isInFieldOfView(self,coords):
+        camera_pos = self.getCameraPosition()
+        #we assume that the horizontal and vertical fov's are the same
+        camera_fov = self.intrinsic_model.fov_horizontal
+        camera_direction = self.getCameraDirection()
+        obj_vector = (numpy.matrix(coords)-camera_pos).transpose()
+        #theta is between 0-180
+        theta = numpy.arccos(numpy.dot(obj_vector,camera_direction)/
+                             numpy.linalg.norm(obj_vector)*numpy.linalg.norm(camera_direction))
+        return (theta-camera_fov/2>0)
+
+
     def projectToImage(self, coords):
         assert(len(coords) == 3)
+        if (not self.isInFieldOfView(coords)):
+            return None
+        
         pos_vect = numpy.matrix(coords).transpose()
         one_vect = numpy.matrix([1])
 

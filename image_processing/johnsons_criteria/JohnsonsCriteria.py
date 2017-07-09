@@ -1,5 +1,6 @@
 from image_processing.camera_model import IntrinsicModel
 import numpy as np
+import math
 from image_processing.simulation import Car
 
 # pixels on target according to the Johnson's Criteria optimistic an pessimistic pixels
@@ -13,10 +14,10 @@ johnsons_criteria = [
 
 # assume for a car I need the below pixels/m
 car_pixels_per_m = {
-    {"detection":1.6 * 3.28084}, # conversion from feet to meters
-    {"recognition":2.7 * 3.28084},
-    {"identification":40 * 3.28084}
-}
+        "detection":1.6 * 3.28084, # conversion from feet to meters
+        "recognition":2.7 * 3.28084,
+        "identification":40 * 3.28084
+    }
 
 def isInFieldOfView(cameraFov,carAngle):
     lowCameraDetectionRange = 90-cameraFov/2
@@ -53,7 +54,7 @@ def estimateRange(goal="detection",
 
     camera_position = [0,0]
 
-    carAngle = np.atan2(camera_position[1], camera_position[0]) - np.atan2(car_position[1], car_position[0]);
+    carAngle = math.atan2(camera_position[1], camera_position[0]) - math.atan2(car_position[1], car_position[0]);
     carAngle = carAngle * 360 / (2 * np.pi);
     if (carAngle < 0):  carAngle = carAngle + 360
     if (isInFieldOfView(im.fov_horizontal,carAngle)):
