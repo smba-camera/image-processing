@@ -46,7 +46,7 @@ class IntrinsicModel:
 
 class ExtrinsicModel:
 
-    def __init__(self, rotation=None, direction=None, translationVector=None):
+    def __init__(self, rotation=None, direction=None, translationVector=None, position=None):
         """Params: [rotation=rotationMatrix or rotationVector]"""
         if rotation:
             assert(len(rotation) == 3)
@@ -79,9 +79,18 @@ class ExtrinsicModel:
                 self.gamma = 0 # rotation of z axis
         if translationVector:
             assert(len(translationVector) == 3)
+            assert(all([numpy.isscalar(x) for x in translationVector]))
             self.translation_x = translationVector[0]  # camera position in real world
             self.translation_y = translationVector[1]
             self.translation_z = translationVector[2]
+        elif position:
+            assert (len(position) == 3)
+
+            translation = numpy.array(numpy.matmul(self.getRotationMatrix(), position))
+            print("positiontranslation: {}\n".format(translation))
+            self.translation_x = translation[0][0]
+            self.translation_y = translation[0][1]
+            self.translation_z = translation[0][2]
         else:
             self.translation_x = 0  # camera position in real world
             self.translation_y = 0
@@ -291,3 +300,9 @@ class CameraModel:
         v = image_processing.util.Vector3D(start_point, vector)
         v.norm()
         return v
+
+    def getCameraPosition(self):
+        vect_trans = self.extrinsic_models[0].getTranslationVector()
+        rot_inv = numpy.linalg.inv(self.extrinsic_models[0].getRotationMatrix())
+        camera_position = numpy.matmul(rot_inv, vect_trans)
+        return camera_position
