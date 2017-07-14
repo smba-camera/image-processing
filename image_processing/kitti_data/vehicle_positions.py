@@ -2,6 +2,16 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 import os
 
+class Vehicle:
+    def __init__(self, type, xPos, yPos, zPos, width, length, angle):
+        self.type = type
+        self.xPos = xPos
+        self.yPos = yPos
+        self.zPos = zPos
+        self.width = width
+        self.length = length
+        self.angle = angle
+
 class VehiclePositions:
     def __init__(self, path, date, drive_num):
         trackletsFolder = "{0}_drive_{1}_tracklets".format(date, drive_num)
@@ -14,7 +24,6 @@ class VehiclePositions:
         e = self.parsed_xml
 
         count=int (e[0][0].text)
-        vehicle = namedtuple('vehicle','type xPos yPos width length angle zPos')
         vehicles=[]
         for index in range(2,count+2):
             startFrame=int (e[0][index][4].text)
@@ -27,7 +36,8 @@ class VehiclePositions:
                 width = float (e[0][index][2].text)
                 length =float (e[0][index][3].text)
                 angle= float (e[0][index][5][2+frame-startFrame][5].text)
-                vehicles.append(vehicle(type=name,xPos=xPos,yPos=yPos,width=width,length=length,angle=angle,zPos=zPos))
+                newVehicle = Vehicle(type=name, xPos=xPos, yPos=yPos, width=width, length=length, angle=angle, zPos=zPos)
+                vehicles.append(newVehicle)
         return vehicles
 
 

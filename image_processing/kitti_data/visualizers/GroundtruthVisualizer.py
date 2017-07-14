@@ -56,10 +56,12 @@ class GroundtruthVisualizer:
             vehicles=vehiclePositions.getVehiclePosition(i)
             count=len(vehicles)
             for j in range(count):
-                name=vehicles[j][0]
+                v = vehicles[j]
+                name = v.type
                 color=self.getVehicleColor(name)
-                ax2.add_patch(patches.Rectangle((-vehicles[j][2]+vehicles[j][3], vehicles[j][1]-vehicles[j][4]),vehicles[j][3],vehicles[j][4],angle=vehicles[j][5],color=color) )
-                vehicleCoord=[vehicles[j][1],vehicles[j][2],vehicles[j][6]]
+
+                ax2.add_patch(patches.Rectangle((- v.yPos + v.width , v.xPos - v.length),v.width ,v.length ,angle=v.angle ,color=color) )
+                vehicleCoord=[v.xPos ,v.yPos ,v.zPos]
                 image_coords = self.camera_model.projectToImage(vehicleCoord)
                 ax1.add_patch(patches.Rectangle(image_coords,20,20,color=color))
             #fig.draw
