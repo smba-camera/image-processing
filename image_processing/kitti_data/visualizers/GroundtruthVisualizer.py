@@ -2,9 +2,11 @@ import glob,os
 import matplotlib.image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from .vehicle_positions import VehiclePositions
+from ..vehicle_positions import VehiclePositions
 
-class Visualizer:
+# Visualizes the real position of the cars
+
+class GroundtruthVisualizer:
     def __init__(self, camera_model, drive_num):
         self.camera_model = camera_model
         self.drive_num = drive_num
@@ -35,7 +37,7 @@ class Visualizer:
         i=0
         vehiclePositions = VehiclePositions(path,date, self.drive_num)
 
-        syncFolder = "{0}_drive_0002_sync".format(date)
+        syncFolder = "{0}_drive_{1}_sync".format(date, self.drive_num)
         imgFolder = "image_{}".format(CamNum)
         imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
         img_glob = os.path.join(imagePath, "*.png")

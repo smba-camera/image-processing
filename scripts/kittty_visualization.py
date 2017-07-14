@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(".")))
 
 from image_processing.kitti_data import Kitti
-from image_processing.kitti_data import visualize
+from image_processing.kitti_data import GroundtruthVisualizer
 import argparse
 
 def runVisualization(drive_num):
@@ -14,9 +14,9 @@ def runVisualization(drive_num):
     drive_num = "{0:04d}".format(drive_num)
 
     for date in Dates:
-        data = Kitti.Kitti()
+        data = Kitti()
         model = data.initialize(path, date)
-        Visualizer = visualize.Visualizer(model, drive_num)
+        Visualizer = GroundtruthVisualizer(model, drive_num)
         Visualizer.showVisuals(path, date)
 
 if __name__ == "__main__":

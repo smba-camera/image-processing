@@ -1,5 +1,5 @@
 import os
-import image_processing.camera_model.Models as Models
+import image_processing.camera_model as Models
 
 class Kitti:
     def __init__(self):
