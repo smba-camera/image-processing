@@ -7,8 +7,8 @@ from ..vehicle_positions import VehiclePositions
 # Visualizes the real position of the cars
 
 class GroundtruthVisualizer:
-    def __init__(self, camera_model, drive_num):
-        self.camera_model = camera_model
+    def __init__(self, kitti, drive_num):
+        self.camera_model = kitti.getCameraModel()
         self.drive_num = drive_num
 
     def getVehicleColor(self, name):
