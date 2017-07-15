@@ -41,11 +41,15 @@ class GroundtruthVisualizer:
         imgFolder = "image_{}".format(CamNum)
         imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
         img_glob = os.path.join(imagePath, "*.png")
-        for pic in glob.glob(img_glob):
+
+        # load all images
+        loaded_images = [matplotlib.image.imread(img) for img in glob.glob(img_glob)]
+
+        for img in loaded_images:
             if not plt.get_fignums():
                 # window has been closed
                 return
-            img=matplotlib.image.imread(pic)
+
             #print ('new Image:')
             ax1=fig.add_subplot(211)
             ax1.imshow(img,cmap='gray')
