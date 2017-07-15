@@ -2,6 +2,7 @@ import os
 import image_processing.camera_model as Models
 
 class Kitti:
+    '''Loads all camera models from the data. They can be retrieved by using getCameraModel(camNum) and getVeloCameraModel()'''
 
     def __init__(self, path, date):
         self.camera_models = []
