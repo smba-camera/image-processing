@@ -2,10 +2,14 @@ import os
 import image_processing.camera_model as Models
 
 class Kitti:
-    def __init__(self):
-        self.focal_length=0
-        self.optical_center_x = 0  # optical center on the image is on coordinates (0,0)
-        self.optical_center_y = 0
+
+    def __init__(self, path, date):
+        self.camera_models = []
+        self.velo_camera_model = None
+
+        fullpath=os.path.join(path,date,date+'_calib',date)
+        self.initCamtoCamParams(fullpath)
+        self.initVelotoCamParams(fullpath, self.camera_models[0])
 
     def store_value_in_matrix(self, matrix, word, j):
         y=j//3
@@ -15,30 +19,52 @@ class Kitti:
     def store_value_in_matrix_last_column(self, matrix, word, j):
         matrix[j][3]=float(word)
 
-    def initCamtoCamParams(self, filepath, CamNum):
-        R_Rect = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    def initCamtoCamParams(self, filepath):
         with open(filepath+'\calib_cam_to_cam.txt') as fp:
-            for i,line in enumerate(fp):
-                if i==(CamNum+1)*8:
-                    j=0
-                    for word in line.split(' ',1)[1].split():
-                        self.store_value_in_matrix(R_Rect, word, j)
-                        j+=1
+            lines = fp.readlines()
+            ignored_lines = 2
+            lines_per_camera = 8
+            translation_line_index = 4
+            rotation_line_index = 6
+            intrinsic_line_index = 7
 
-                if i==1+(CamNum+1)*8:
-                    j=0
-                    for word in line.split(' ',1)[1].split():
-                        if j==0:
-                            self.focal_length=float(word)
-                        if j==2:
-                            self.optical_center_x=float(word)
-                        if j==6:
-                            self.optical_center_y=float(word)
-                        j+=1
+
+            cam_row_index = ignored_lines
+            for cam_num in range(4):
+                # get rotation
+                rotation = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+                line_index = cam_row_index + rotation_line_index
+                words = lines[line_index].split()[1:]
+                for j, word in enumerate(words):
+                    self.store_value_in_matrix(rotation, word, j)
+
+                # get translation
+                line_index = cam_row_index + translation_line_index
+                words = lines[line_index].split()[1:]
+                translation = map(lambda w: float(w), words)
+
+                # get intrinsic params
+                line_index = cam_row_index + intrinsic_line_index
+                words = lines[line_index].split()[1:]
+                focal_length = float(words[0])
+                optical_center_x = float(words[2])
+                optical_center_y = float(words[6])
+
+                # create camera model
+                im = Models.IntrinsicModel(
+                    focal_length=focal_length,
+                    optical_center_x=optical_center_x,
+                    optical_center_y=optical_center_y)
+                em = Models.ExtrinsicModel(rotation=rotation, translationVector=translation)
+                cm = Models.CameraModel(im=im, em=em)
+                self.camera_models.append(cm)
+
+                # next camera
+                cam_row_index += lines_per_camera
+
         fp.close()
-        self.extrinsic_Model=Models.ExtrinsicModel(rotation=R_Rect)
 
-    def initVelotoCamParams(self,filepath):
+    def initVelotoCamParams(self,filepath, referenceCameraModel):
         rot_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         trans_vect = [0,0,0]
         with open(filepath+'\calib_velo_to_cam.txt') as fp:
@@ -54,16 +80,17 @@ class Kitti:
                         trans_vect[j] = float(word)
                         j+=1
         fp.close()
-        self.Cam_to_Velo_Model = Models.ExtrinsicModel(rotation=rot_mat, translationVector=trans_vect)
+        em = Models.ExtrinsicModel(rotation=rot_mat, translationVector=trans_vect)
+        ems = referenceCameraModel.extrinsic_models
+        im = referenceCameraModel.intrinsic_model
+        extrinsic_models = [em]
+        extrinsic_models.extend(ems)
+        cm = Models.CameraModel(im=im, em=extrinsic_models)
 
-    def initialize(self,path,date,CamNum=0,):
+        self.velo_camera_model = cm
 
-        fullpath=os.path.join(path,date,date+'_calib',date)
-        self.initCamtoCamParams(fullpath,CamNum)
-        self.initVelotoCamParams(fullpath)
-        self.intrinsic_Model=Models.IntrinsicModel(focal_length=self.focal_length,optical_center_x=self.optical_center_x,optical_center_y=self.optical_center_y)
-        self.camera_Model=Models.CameraModel(self.intrinsic_Model,[self.extrinsic_Model,self.Cam_to_Velo_Model])
-        return self.camera_Model
+    def getCameraModel(self, cam_num):
+        return self.camera_models[cam_num]
 
-    def getCameraModel(self):
-        return self.camera_Model
+    def getVeloCameraModel(self):
+        return self.velo_camera_model

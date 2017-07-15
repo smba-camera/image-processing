@@ -10,8 +10,9 @@ import cv2
 
 class RangeestimationVisualizer:
     def __init__(self, kitti, drive_num):
-        self.camera_model_1 = kitti.getCameraModel()
-        self.camera_model_2 = self.camera_model_1
+        self.camera_model_velo = kitti.getVeloCameraModel()
+        self.camera_model_1 = kitti.getCameraModel(0)
+        self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
 
     def getVehicleColor(self, name):
@@ -44,8 +45,8 @@ class RangeestimationVisualizer:
 
         # fake implementation for the time the implementation of the detection of vehicles is not finished
         for v in realVehiclePositions:
-            img_coord_1 = self.camera_model_1.projectToImage([v.xPos, v.yPos, v.zPos])
-            img_coord_2 = self.camera_model_2.projectToImage([v.xPos, v.yPos, v.zPos])
+            img_coord_1 = self.camera_model_velo.projectToImage([v.xPos, v.yPos, v.zPos])
+            img_coord_2 = self.camera_model_velo.projectToImage([v.xPos, v.yPos, v.zPos])
             img_coords.append((img_coord_1, img_coord_2))
 
         return img_coords
@@ -100,7 +101,7 @@ class RangeestimationVisualizer:
                     patches.Rectangle((- v.yPos + v.width, v.xPos - v.length), v.width, v.length, angle=v.angle,
                                       color=color))
                 vehicleCoord = [v.xPos, v.yPos, v.zPos]
-                image_coords = self.camera_model_1.projectToImage(vehicleCoord)
+                image_coords = self.camera_model_velo.projectToImage(vehicleCoord)
                 ax1.add_patch(patches.Rectangle(image_coords, 20, 20, color=color))
 
             #fig.draw

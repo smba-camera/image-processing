@@ -14,8 +14,8 @@ def runVisualization(drive_num, visualizationType):
     drive_num = "{0:04d}".format(drive_num)
 
     for date in Dates:
-        kitti = Kitti()
-        kitti.initialize(path, date)
+        kitti = Kitti(path, date)
+
         Visualizer = createVisualizer(visualizationType, kitti, drive_num)
         Visualizer.showVisuals(path, date)
 
