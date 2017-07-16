@@ -1,16 +1,18 @@
-import glob,os
-import matplotlib.image
+import os
+import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from ..vehicle_positions import VehiclePositions
 import cv2
+import sys
+import image_processing.util.Util as util
 
 
 # detected cars within the kitti images and estimations for distances
 
 class RangeestimationVisualizer:
     def __init__(self, kitti, drive_num):
-        self.camera_model_velo = kitti.getVeloCameraModel()
+        self.camera_model_velo_camera_0 = kitti.getVeloCameraModel()
         self.camera_model_1 = kitti.getCameraModel(0)
         self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
@@ -45,13 +47,14 @@ class RangeestimationVisualizer:
 
         # fake implementation for the time the implementation of the detection of vehicles is not finished
         for v in realVehiclePositions:
-            img_coord_1 = self.camera_model_velo.projectToImage([v.xPos, v.yPos, v.zPos])
-            img_coord_2 = self.camera_model_velo.projectToImage([v.xPos, v.yPos, v.zPos])
-            img_coords.append((img_coord_1, img_coord_2))
+            img_coord_0 = self.camera_model_velo_camera_0.projectToImage([v.xPos, v.yPos, v.zPos])
+            # TODO: next line is currently wrong (projection to image0)
+            img_coord_1 = self.camera_model_velo_camera_0.projectToImage([v.xPos, v.yPos, v.zPos])
+            img_coords.append((img_coord_0, img_coord_1))
 
         return img_coords
 
-    def showVisuals(self, path,date,CamNum='00'):
+    def showVisuals(self, path,date):
         fig=plt.figure()
         plt.get_current_fig_manager().window.state('zoomed')
         i=0
@@ -68,17 +71,33 @@ class RangeestimationVisualizer:
         assert(len(images_camera_0) == len(images_camera_1))
 
         # load all images:
-        print("Loading images...\n")
+        sys.stdout.write("Loading images...")
+        start_time = time.time()
         loaded_images = []
-        for (pic0, pic1) in zip(images_camera_0, images_camera_1):
-            #RGB BGR
+        for i, (pic0, pic1) in enumerate(zip(images_camera_0, images_camera_1)):
+
             loaded_pic_0 = cv2.imread(pic0, cv2.IMREAD_UNCHANGED)
-            #cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            loaded_images.append((loaded_pic_0, None))
+            loaded_pic_1 = cv2.imread(pic1, cv2.IMREAD_UNCHANGED)
+            vehicles = self.getRealVehiclePositions(i, vehiclePositions)
 
-        print("Done.\nShow Range estimations...\n")
+            loaded_images.append(StereoVisionImage(loaded_pic_0, loaded_pic_1, vehicles))
 
-        for (img0, img1) in loaded_images:
+            # convert RGB between BGR : cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        sys.stdout.write("{}s\n".format(time.time() - start_time))
+
+        sys.stdout.write("Searching for Vehicles in {} images...".format(len(loaded_images)))
+        start_time = time.time()
+        # TODO: implement
+        sys.stdout.write("{}s\n".format(time.time() - start_time))
+
+
+        print("Show Range estimations...\n")
+
+        for stereo_vision_image in loaded_images:
+            img0 = stereo_vision_image.image0
+            img1 = stereo_vision_image.image1
+            real_vehicle_positions = stereo_vision_image.real_vehicle_positions
+
             if not plt.get_fignums():
                 # window has been closed
                 return
@@ -90,19 +109,27 @@ class RangeestimationVisualizer:
 
             ax2=fig.add_subplot(212)
 
-            vehicles = vehiclePositions.getVehiclePosition(i)
-            count = len(vehicles)
+            # TODO: use vehicle positions from image analysis
+            count = len(real_vehicle_positions)
             for j in range(count):
-                v = vehicles[j]
+                v = real_vehicle_positions[j]
                 name = v.type
                 color = self.getVehicleColor(name)
 
+                # show car in top-view coord system
                 ax2.add_patch(
                     patches.Rectangle((- v.yPos + v.width, v.xPos - v.length), v.width, v.length, angle=v.angle,
                                       color=color))
+
+                # show vehicle position in image
                 vehicleCoord = [v.xPos, v.yPos, v.zPos]
-                image_coords = self.camera_model_velo.projectToImage(vehicleCoord)
-                ax1.add_patch(patches.Rectangle(image_coords, 20, 20, color=color))
+                distance = util.distance(self.camera_model_1.getCameraPosition(), vehicleCoord)
+                image_coords = self.camera_model_velo_camera_0.projectToImage(vehicleCoord)
+                patch = patches.Rectangle(image_coords, 20, 20, color=color)
+                ax1.add_patch(patch)
+                # add distance description
+                ax1.text(image_coords[0], image_coords[1]+40, "{}m".format(distance), color=color)
+
 
             #fig.draw
             ax2.set_ylim([0,100])
@@ -114,3 +141,14 @@ class RangeestimationVisualizer:
             #time.sleep(10)
             i+=1
 
+class StereoVisionImage:
+    def __init__(self, imageWithVehicles0, imageWithVehicles1, real_vehicle_positions):
+        self.image0 = imageWithVehicles0
+        self.image1 = imageWithVehicles1
+        self.real_vehicle_positions = real_vehicle_positions
+        self.vehicles0 = None
+        self.vehicles1 = None
+
+    def setVehicles(self, vehicles0, vehicles1):
+        self.vehicles0 = vehicles0
+        self.vehicles1 = vehicles1
