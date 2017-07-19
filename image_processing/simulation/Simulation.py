@@ -1,6 +1,6 @@
-import Playground
-import Car
-import Weather
+from Playground import *
+from Car import *
+from Weather import *
 from random import randint as rand
 
 def startSimulation():

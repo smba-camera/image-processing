@@ -1,1 +1,18 @@
-Visualisation of the Kitti data sets. Marks cars in the picture with dots.
+Visualisation of the Kitti data set
+
+for kitty visualization please download data from
+- http://www.cvlibs.net/datasets/kitti/raw_data.php
+and place it at image-processing/data/kitti/[date]/
+
+for a specific drive you have to download
+- synced/rectified data
+- calibration
+- tracklets
+
+folder structure of data folder will be something like this:
+-* data
+--* kitti
+---* 2011_09_26
+----* 2011_09_26_calib
+----* 2011_09_26_drive_0001_tracklets
+----* 2011_09_26_drive_0001_sync

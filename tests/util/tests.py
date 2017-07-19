@@ -13,6 +13,7 @@ def test_shortestDistance():
     v = Vector3D([1,1,1] , [0,10,0])
     target_p = [1,31,3]
     shortest_distance = v.shortest_distance(target_p)
+    #print("test_shortestDistance: {}".format(shortest_distance))
     assert(shortest_distance < 3)
 
 def test_distanceToLine():

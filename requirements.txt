@@ -1,4 +1,5 @@
 numpy
-nose
+nose2
 matplotlib
 opencv-python
+

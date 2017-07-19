@@ -1,17 +1,24 @@
 class Weather(object):
 
-    weather_type = {1:"Sunny",
-                    2:"Rain",
-                    3:"Snow",
-                    4:"Hail",
-                    5:"Fog"}
+    weather_type = {"Sunny",
+                    "Rain",
+                    "Snow",
+                    "Hail",
+                    "Fog"}
 
-    def __init__(self,weather_value):
-        self.weather_value = weather_value
+    def __init__(self,current_weather,size=0,density=0):
+        self.current_weather = current_weather
+        if (current_weather!="Sunny"):
+            self.density = density
+            if (current_weather!="Fog"):
+                self.meteor_size = size
+
+    def getWeatherTypes(self):
+        return self.weather_type
 
     def setHydrometeorValues(self,size,density):
-        self.meteor_size = size
-        self.density = density
+        self.meteor_size = size #in mm
+        self.density = density # in mm/hour
 
     def setFogDensity(self,density):
         self.density = density

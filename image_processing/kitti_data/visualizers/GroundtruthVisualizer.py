@@ -5,11 +5,13 @@ import cv2
 import math
 import random
 import matplotlib.patches as patches
-from .vehicle_positions import VehiclePositions
+from ..vehicle_positions import VehiclePositions
 
-class Visualizer:
-    def __init__(self, camera_model, drive_num):
-        self.camera_model = camera_model
+# Visualizes the real position of the cars
+
+class GroundtruthVisualizer:
+    def __init__(self, kitti, drive_num):
+        self.camera_model = kitti.getVeloCameraModel()
         self.drive_num = drive_num
         self.car_count=0
         self.Nocar_count=0
@@ -84,16 +86,19 @@ class Visualizer:
         i=0
         vehiclePositions = VehiclePositions(path,date, self.drive_num)
 
-        syncFolder = "{0}_drive_{1}_sync".format(date,self.drive_num)
+        syncFolder = "{0}_drive_{1}_sync".format(date, self.drive_num)
         imgFolder = "image_{}".format(CamNum)
         imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
         img_glob = os.path.join(imagePath, "*.png")
-        print (img_glob)
-        for pic in glob.glob(img_glob):
+
+        # load all images
+        loaded_images = [matplotlib.image.imread(img) for img in glob.glob(img_glob)]
+
+        for img in loaded_images:
             if not plt.get_fignums():
                 # window has been closed
                 return
-            img=cv2.imread(pic)
+
             #print ('new Image:')
             ax1=fig.add_subplot(211)
             ax1.imshow(img,cmap='gray')
@@ -104,10 +109,12 @@ class Visualizer:
             vehicles=vehiclePositions.getVehiclePosition(i)
             count=len(vehicles)
             for j in range(count):
-                name=vehicles[j][0]
+                v = vehicles[j]
+                name = v.type
                 color=self.getVehicleColor(name)
-                ax2.add_patch(patches.Rectangle((-vehicles[j][2]+vehicles[j][3], vehicles[j][1]-vehicles[j][4]),vehicles[j][3],vehicles[j][4],angle=vehicles[j][5],color=color) )
-                vehicleCoord=[vehicles[j][1],vehicles[j][2],vehicles[j][6]]
+
+                ax2.add_patch(patches.Rectangle((- v.yPos + v.width , v.xPos - v.length),v.width ,v.length ,angle=v.angle ,color=color) )
+                vehicleCoord=[v.xPos ,v.yPos ,v.zPos]
                 image_coords = self.camera_model.projectToImage(vehicleCoord)
                 ax1.add_patch(patches.Rectangle(image_coords,2,2,color=color))
                 if name=='Car':
