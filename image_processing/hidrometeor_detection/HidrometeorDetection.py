@@ -31,6 +31,9 @@ def visibilityOfRain():
 def Gaussian_N(X, mu, sigma):
     return 1 / (sigma * np.sqrt(2 * np.pi)) * np.e ^ ((-1 / 2) * (sigma ^ (-2)) * (X - mu) ^ 2)
 
+def Gaussian_Normal(X,mu,sigma):
+    return np.random.normal(mu,sigma,None)
+
 def movingObjectsSegmentation():
     K = 100  # number of Gaussian distributions for each pixel
     Time = 30  # time = the sum of all available pictures that will be analyzed
