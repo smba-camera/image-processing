@@ -1,7 +1,3 @@
-numpy
-nose2
-matplotlib
-opencv-python
 scipy
 sklearn
 skimage
