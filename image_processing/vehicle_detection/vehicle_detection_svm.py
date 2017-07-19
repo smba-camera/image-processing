@@ -17,8 +17,57 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 #%matplotlib inline
 
 
+def init(path_trained_model, path_scalar_defintion, image_width, image_height):
+    global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p
+    #train()
+    #print scaled_X.shape
+    #print y.shape
+    #print scaled_X[0].shape
+
+    #print "finished training"
+    svc=load_trained_model(path_trained_model)
+    X_scaler=load_scalar(path_scalar_defintion)
+    '''
+    image = cv2.imread('images2/0000000000.png')
+    track = (880, 450)
+    w_size = 80
+    windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
+                           y_start_stop=[track[1]-w_size,track[1]+w_size],
+                           xy_window=(128, 128), xy_overlap=(0.75, 0.75))
+    window_img = draw_boxes(image, windows, color=(0, 0, 255), thick=6)
+    windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
+                           y_start_stop=[track[1]-int(w_size),track[1]+int(w_size)],
+                           xy_window=(48, 48), xy_overlap=(0.75, 0.75))
+    window_img = draw_boxes(window_img, windows, color=(255, 0, 0), thick=6)
+    show_img(window_img)
+    '''
+    #print('Test Accuracy of SVC = ', round(svc.score(scaled_X, y), 4))
 
 
+    THRES = 10 # Minimal overlapping boxes
+    ALPHA = 0.75 # Filter parameter, weight of the previous measurements
+
+    #image = cv2.imread('test1.png')
+    track_list = []#[np.array([880, 440, 76, 76])]
+    #track_list += [np.array([1200, 480, 124, 124])]
+    THRES_LEN = 50
+    Y_MIN = 40
+
+    n_count = 0 # Frame counter
+    boxes_p = [] # Store prev car boxes
+
+    # background=np.zeros((image.shape),np.uint8)
+    heat_p = np.zeros((image_width, image_height))  # Store prev heat image
+
+def find_vehicles(image):
+    #background[345:720,19:1261]=img
+    #show_img(background)
+    show_img(frame_proc(image, lane=False, vis=False))
+
+
+
+
+# IMPLEMENTATION
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
     if vis == True: # Call with two outputs if vis==True to visualize the HOG
         features, hog_image = hog(img, orientations=orient,
@@ -172,8 +221,8 @@ def load_features():
         notcar_features=cPickle.load(fid4)
     return car_features,notcar_features
 
-def load_scalar():
-    with open('scalar.pkl', 'rb') as fid6:
+def load_scalar(path_scalar_definition):
+    with open(path_scalar_definition, 'rb') as fid6:
         return cPickle.load(fid6)
 
 #save_features()
@@ -202,8 +251,8 @@ def train():
     with open('svm_model.pkl','wb') as fid:
         cPickle.dump(svc,fid)
 
-def load_trained_model():
-    with open('svm_model.pkl','rb') as fid:
+def load_trained_model(path_trained_model):
+    with open(path_trained_model,'rb') as fid:
         return cPickle.load(fid)
 
 
@@ -346,7 +395,7 @@ def show_img(img):
 def convert_color(img):
     return cv2.cvtColor(img, cv2.COLOR_RGB2LUV)
 
-def find_cars(img, ystart, ystop, xstart, xstop, scale, step):
+def find_cars_in_subimages(img, ystart, ystop, xstart, xstop, scale, step):
     boxes = []
     #print(ystart,ystop,xstart,xstop)
     draw_img = np.zeros_like(img)
@@ -475,11 +524,11 @@ def frame_proc(img, lane=False, video=False, vis=False):
         global heat_p, boxes_p, n_count
         heat = np.zeros_like(img[:, :, 0]).astype(np.float)
         boxes = []
-        boxes = find_cars(img, 200, 375, 0, 500, 2.0, 2)
-        boxes += find_cars(img, 200, 375, 650, 900, 1, 2)
-        boxes += find_cars(img, 200, 375, 650, 850, 2.0, 2)
-        boxes += find_cars(img, 200, 375, 0, 500, 1, 2)
-        boxes += find_cars(img, 150, 300, 400, 700, 0.5, 3)
+        boxes = find_cars_in_subimages(img, 200, 375, 0, 500, 2.0, 2)
+        boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 1, 2)
+        boxes += find_cars_in_subimages(img, 200, 375, 650, 850, 2.0, 2)
+        boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
+        boxes += find_cars_in_subimages(img, 150, 300, 400, 700, 0.5, 3)
         print len(boxes)
         for track in track_list:
             y_loc = track[1] + track[3]
@@ -500,10 +549,10 @@ def frame_proc(img, lane=False, video=False, vis=False):
             size_sq = lane_w / (0.015 * lane_w + 0.3)
             scale = size_sq / 64.0
             # Apply multi scale image windows
-            boxes += find_cars(img, int(ys), int(yf), int(xs), int(xf), scale, 2)
-            boxes += find_cars(img, int(ys), int(yf), int(xs), int(xf), scale * 1.25, 2)
-            boxes += find_cars(img, int(ys), int(yf), int(xs), int(xf), scale * 1.5, 2)
-            boxes += find_cars(img, int(ys), int(yf), int(xs), int(xf), scale * 1.75, 2)
+            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale, 2)
+            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.25, 2)
+            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.5, 2)
+            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.75, 2)
             if vis:
                 cv2.rectangle(img, (int(xs), int(ys)), (int(xf), int(yf)), color=(0, 255, 0), thickness=3)
         heat = add_heat(heat, boxes)
@@ -533,92 +582,6 @@ def frame_proc(img, lane=False, video=False, vis=False):
     n_count += 1
     return imp
 
-
-#train()
-#print scaled_X.shape
-#print y.shape
-#print scaled_X[0].shape
-
-#print "finished training"
-svc=load_trained_model()
-X_scaler=load_scalar()
-'''
-image = cv2.imread('images2/0000000000.png')
-track = (880, 450)
-w_size = 80
-windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
-                       y_start_stop=[track[1]-w_size,track[1]+w_size],
-                       xy_window=(128, 128), xy_overlap=(0.75, 0.75))
-window_img = draw_boxes(image, windows, color=(0, 0, 255), thick=6)
-windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
-                       y_start_stop=[track[1]-int(w_size),track[1]+int(w_size)],
-                       xy_window=(48, 48), xy_overlap=(0.75, 0.75))
-window_img = draw_boxes(window_img, windows, color=(255, 0, 0), thick=6)
-show_img(window_img)
-'''
-#print('Test Accuracy of SVC = ', round(svc.score(scaled_X, y), 4))
-
-
-THRES = 10 # Minimal overlapping boxes
-ALPHA = 0.75 # Filter parameter, weight of the previous measurements
-
-image = cv2.imread('images2/0000000000.png')
-#image = cv2.imread('test1.png')
-track_list = []#[np.array([880, 440, 76, 76])]
-#track_list += [np.array([1200, 480, 124, 124])]
-THRES_LEN = 50
-Y_MIN = 40
-height,width,channels= image.shape
-print height,width,channels
-
-#background=np.zeros((image.shape),np.uint8)
-heat_p = np.zeros((height, width)) # Store prev heat image
-boxes_p = [] # Store prev car boxes
-n_count = 0 # Frame counter
-#375,1242
-#720,1280
-#x_offset=345
-#y_offset=38
-images =glob.glob('images2/*.png')
-images.sort()
-#show_img(background)
-#count=0
-#t=time.time() # Start time
-#for i in range(len(y)):
-#  if y[i]==svc.predict(scaled_X[i]):
-#        count+=1
-#print scaled_X[0][:50]
-#test=scaled_X[0]
-#print (count,len(y))
-
-#1,2432
-'''
-count =0
-for image_p in images:
-    image = cv2.imread(image_p)
-    feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
-    features=[]
-    file_features = img_features(feature_image, spatial_feat, hist_feat, hog_feat, hist_bins, orient,
-                                pix_per_cell, cell_per_block, hog_channel)
-    features.append(np.concatenate(file_features))
-    #print features
-    X = np.vstack((features)).astype(np.float64)
-    #print X  # Fit a per-column scaler
-    #print X_scaler
-    scaled_X = X_scaler.transform(X)
-    #print scaled_X[0][:50]
-    test_prediction = svc.predict(scaled_X[0])
-    if test_prediction == 1:
-        #show_img(image)
-        count+=1
-print(count,len(images))
-
-'''
-for image in images:
-    img = cv2.imread(image)
-    #background[345:720,19:1261]=img
-    #show_img(background)
-    show_img(frame_proc(img, lane=False, vis=False))
 
 
 
