@@ -7,6 +7,7 @@ class Kitti:
     def __init__(self, path, date):
         self.camera_models = []
         self.velo_camera_model = None
+        self.velo_extrinsic_model = None
 
         fullpath=os.path.join(path,date,date+'_calib',date)
         self.initCamtoCamParams(fullpath)
@@ -82,6 +83,8 @@ class Kitti:
                         j+=1
         fp.close()
         em = Models.ExtrinsicModel(rotation=rot_mat, translationVector=trans_vect)
+        self.velo_extrinsic_model = em
+
         ems = referenceCameraModel.extrinsic_models
         im = referenceCameraModel.intrinsic_model
         extrinsic_models = [em]
@@ -95,3 +98,6 @@ class Kitti:
 
     def getVeloCameraModel(self):
         return self.velo_camera_model
+
+    def getVeloExtrinsicModel(self):
+        return self.velo_extrinsic_model

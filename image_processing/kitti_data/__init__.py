@@ -1,2 +1,3 @@
 from Kitti import Kitti
 from .visualizers import GroundtruthVisualizer, RangeestimationVisualizer
+from vehicle_positions import VehiclePositions
