@@ -1,7 +1,7 @@
 import numpy
 import math
 import numbers
-from .IntrinsicModel import IntrinsicModel
+import image_processing.util as util
 
 
 class ExtrinsicModel:
@@ -24,14 +24,15 @@ class ExtrinsicModel:
             if direction:
                 def unzero(val):
                     if val==0:
-                        return 0.00000001
+                        return 0.1
                     return val
+                normed_direction = util.norm([unzero(x) for x in direction])
                 # rotation is given as direction
                 self.rotationMatrix = numpy.linalg.inv(
                     [
-                        [unzero(direction[0]),0,0],
-                        [0,unzero(direction[1]),0],
-                        [0,0,unzero(direction[2])]
+                        [normed_direction[0],0,0],
+                        [0,normed_direction[1],0],
+                        [0,0,normed_direction[2]]
                     ])
             else:
                 self.alpha = 0 # rotation of x axis
@@ -55,6 +56,33 @@ class ExtrinsicModel:
             self.translation_x = 0  # camera position in real world
             self.translation_y = 0
             self.translation_z = 0
+
+    def nonzero(self, num):
+        def nonzero_val(val):
+            if val==0: return 0.0000000000000001
+            return val
+
+        # for rotation non zero values are important
+        if not type(num)=='list': return nonzero_val(num)
+        return [nonzero_val(x) for x in num]
+
+    def project_coordinates(self, coord):
+        assert(len(coord) == 3)
+
+        nonzero_coords = self.nonzero(coord)
+        coord_mat = numpy.matrix(nonzero_coords).transpose()
+        result = numpy.matmul(self.getRotationMatrix(), coord_mat) + self.getTranslationVector()
+        return numpy.array(result).flatten().tolist() # return as normal list
+
+    def project_coordinates_backwards(self, coord):
+        assert(len(coord) == 3)
+
+        nonzero_coords = self.nonzero(coord)
+        coord_mat = numpy.matrix(nonzero_coords).transpose()
+        coord_mat -= self.getTranslationVector()
+        rot_mat_inv = numpy.linalg.inv(self.getRotationMatrix())
+        result = numpy.matmul(rot_mat_inv, coord_mat)
+        return numpy.array(result).flatten().tolist() # return as normal list
 
     def getRotationMatrix(self):
 
@@ -88,7 +116,18 @@ class ExtrinsicModel:
     def getTranslationVector(self):
         return numpy.matrix([self.translation_x, self.translation_y, self.translation_z]).transpose()
 
+    def getTranslation(self):
+        return [self.translation_x, self.translation_y, self.translation_z]
+
     def getMatrix(self):
         R = self.getRotationMatrix()
         t = self.getTranslationVector()
         return numpy.concatenate((R, t), axis=1)
+
+    def getDirection(self):
+        vector = numpy.matrix([1,1,1]).transpose()
+        rot_mat_inv = numpy.linalg.inv(self.getMatrix())
+        result = numpy.matmul(rot_mat_inv, vector)
+        return numpy.array(result.transpose()).tolist()[0] # convert to normal python list
+
+

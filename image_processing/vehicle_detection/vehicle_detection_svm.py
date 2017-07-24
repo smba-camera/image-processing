@@ -520,6 +520,7 @@ def draw_labeled_bboxes(labels):
 
 
 def frame_proc(img, lane=False, video=False, vis=False):
+    '''Returns the detected car boxes '''
     if (video and n_count % 2 == 0) or not video:  # Skip every second video frame
         global heat_p, boxes_p, n_count
         heat = np.zeros_like(img[:, :, 0]).astype(np.float)
@@ -569,6 +570,11 @@ def frame_proc(img, lane=False, video=False, vis=False):
 
     else:
         cars_boxes = boxes_p
+
+    if (not (lane or video or vis)):
+        # if now visualization parameter is set, return car boxes
+        return cars_boxes
+
     if lane:  # If we was asked to draw the lane line, do it
         if video:
             img = laneline.draw_lane(img, True)

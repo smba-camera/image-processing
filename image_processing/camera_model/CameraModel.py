@@ -16,6 +16,12 @@ class CameraModel:
 
         self.apply_new_extrinsic_models(em)
 
+    def getExtrinsicModels(self):
+        return self.extrinsic_models
+
+    def getIntrinsicModel(self):
+        return self.intrinsic_model
+
     # precalculate projection matrix for faster projection
     def calculate_projection_matrix(self):
         one_vect_short = numpy.matrix([1,1,1])

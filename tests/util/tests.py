@@ -1,4 +1,7 @@
-from image_processing.util import Vector3D,distance
+import numpy
+import math
+from image_processing.util import Vector3D,distance,norm,turnVect_firstTry
+from image_processing.camera_model import ExtrinsicModel
 
 def test_distance():
     A, B = [1,3,7], [1,3, 707]
@@ -22,3 +25,17 @@ def test_distanceToLine():
     dist = u.distance_to_line(v)
     exp_dist = 2
     assert(dist == exp_dist)
+
+def test_norm():
+    vect = [6,7,8]
+    normed = norm(vect)
+    assert(1 == numpy.linalg.norm(normed))
+
+def test_turn():
+    vect = [4,6,8]
+    rad_turn = math.pi / 8
+    turned = turnVect_firstTry(vect, rad_turn)
+    turned_turned = turnVect_firstTry(turned, -rad_turn)
+    print("vect: {}".format(vect))
+    print("turned_turned: {}".format(turned_turned))
+    assert(vect == turned_turned)
