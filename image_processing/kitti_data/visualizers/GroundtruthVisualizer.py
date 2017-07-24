@@ -80,14 +80,14 @@ class GroundtruthVisualizer:
             self.car_count+=1
         self.save_non_cars(img,list)
 
-    def showVisuals(self, path,date,CamNum='00'):
+    def showVisuals(self, path,date):
         fig=plt.figure()
         plt.get_current_fig_manager().window.state('zoomed')
         i=0
         vehiclePositions = VehiclePositions(path,date, self.drive_num)
 
         syncFolder = "{0}_drive_{1}_sync".format(date, self.drive_num)
-        imgFolder = "image_{}".format(CamNum)
+        imgFolder = "image_{}".format('02') # always use camera 2 for colored images
         imagePath = os.path.join(path, date, syncFolder, date, syncFolder, imgFolder,'data')
         img_glob = os.path.join(imagePath, "*.png")
 
