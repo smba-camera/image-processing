@@ -23,7 +23,6 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     #print scaled_X.shape
     #print y.shape
     #print scaled_X[0].shape
-
     #print "finished training"
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
@@ -44,8 +43,8 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     #print('Test Accuracy of SVC = ', round(svc.score(scaled_X, y), 4))
 
 
-    THRES = 10 # Minimal overlapping boxes
-    ALPHA = 0.75 # Filter parameter, weight of the previous measurements
+    THRES = 8 # Minimal overlapping boxes
+    ALPHA = 0.5 # Filter parameter, weight of the previous measurements
 
     #image = cv2.imread('test1.png')
     track_list = []#[np.array([880, 440, 76, 76])]
@@ -62,7 +61,7 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
 def find_vehicles(image):
     #background[345:720,19:1261]=img
     #show_img(background)
-    show_img(frame_proc(image, lane=False, vis=False))
+    show_img(frame_proc(image, lane=False, vis=False, showim=True))
 
 
 
@@ -437,13 +436,12 @@ def find_cars_in_subimages(img, ystart, ystop, xstart, xstop, scale, step):
             scaled_X = X_scaler.transform(X)
             test_prediction = svc.predict(scaled_X[0])
             if test_prediction == 1:
-                #show_img(subimg)
-                print scale
                 xbox_left = np.int(xleft * scale) + xstart
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
                 boxes.append(((int(xbox_left), int(ytop_draw + ystart)),
                               (int(xbox_left + win_draw), int(ytop_draw + win_draw + ystart))))
+
     return boxes
 
 
@@ -488,20 +486,12 @@ def draw_labeled_bboxes(labels):
         # img = draw_boxes(np.copy(img), [bbox], color=(255,0,255), thick=3)
         size_x = (bbox[1][0] - bbox[0][0]) / 2.0  # Size of the found box
         size_y = (bbox[1][1] - bbox[0][1]) / 2.0
-        asp_d = size_x / size_y
         size_m = (size_x + size_y) / 2
         x = size_x + bbox[0][0]
         y = size_y + bbox[0][1]
-        asp = (
-              y - Y_MIN) / 130.0 + 1.2  # Best rectangle aspect ratio for the box (coefficients from perspectieve measurements and experiments)
-        if x > 1050 or x < 230:
-            asp *= 1.4
-        asp = max(asp, asp_d)  # for several cars chunk
-        size_ya = np.sqrt(size_x * size_y / asp)
-        size_xa = int(size_ya * asp)
-        size_ya = int(size_ya)
-        if True:#x > (-3.049 * y + 1809):  # If the rectangle on the road, coordinates estimated from a test image
-            track_list_l.append(np.array([x, y, size_xa, size_ya]))
+        print x,y,size_x,size_y
+        if size_x>9 and size_y>9:
+            track_list_l.append(np.array([x, y, size_x, size_y]))
             if len(track_list) > 0:
                 track_l = track_list_l[-1]
                 dist = []
@@ -519,7 +509,7 @@ def draw_labeled_bboxes(labels):
     return boxes
 
 
-def frame_proc(img, lane=False, video=False, vis=False):
+def frame_proc(img, lane=False, video=False, vis=False, showim=False):
     '''Returns the detected car boxes '''
     if (video and n_count % 2 == 0) or not video:  # Skip every second video frame
         global heat_p, boxes_p, n_count
@@ -529,8 +519,9 @@ def frame_proc(img, lane=False, video=False, vis=False):
         boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 1, 2)
         boxes += find_cars_in_subimages(img, 200, 375, 650, 850, 2.0, 2)
         boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
-        boxes += find_cars_in_subimages(img, 150, 300, 400, 700, 0.5, 3)
+        boxes += find_cars_in_subimages(img, 150, 300, 300, 700, 0.5, 3)
         print len(boxes)
+        '''
         for track in track_list:
             y_loc = track[1] + track[3]
             lane_w = (y_loc * 2.841 - 1170.0) / 3.0
@@ -556,6 +547,7 @@ def frame_proc(img, lane=False, video=False, vis=False):
             boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.75, 2)
             if vis:
                 cv2.rectangle(img, (int(xs), int(ys)), (int(xf), int(yf)), color=(0, 255, 0), thickness=3)
+        '''
         heat = add_heat(heat, boxes)
         heat_l = heat_p + heat
         heat_p = heat
@@ -571,7 +563,7 @@ def frame_proc(img, lane=False, video=False, vis=False):
     else:
         cars_boxes = boxes_p
 
-    if (not (lane or video or vis)):
+    if (not (lane or video or vis or showim )):
         # if now visualization parameter is set, return car boxes
         return cars_boxes
 
