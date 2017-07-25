@@ -7,6 +7,7 @@ import cv2
 import sys
 import image_processing.util.Util as util
 from image_processing.vehicle_detection import VehicleDetection,match_vehicles_stereo
+from image_processing.position_estimation import PositionEstimationStereoVision
 
 
 
@@ -19,7 +20,7 @@ class RangeestimationVisualizer:
         self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
         self.vehicledetectioninit=0
-        self.detector
+        self.detector = None
 
     def getVehicleColor(self, name):
         color='none'
@@ -45,13 +46,21 @@ class RangeestimationVisualizer:
         ''' finds vehicles within the image. Will just '''
         return vehiclePositions.getVehiclePosition(imgId)
 
-    def findVehiclesOnStereoImages(self, imagepair):
+    def findVehiclesOnStereoImages(self, stereovision_image):
         if not self.vehicledetectioninit:
-            self.detector=VehicleDetection(imagepair.image0)
-        cars_img_one=self.detector.find_vehicles(imagepair.image0)
-        cars_img_two = self.detector.find_vehicles(imagepair.image1)
-        imagepair.vehicles = match_vehicles_stereo(cars_img_one,cars_img_two)
-        
+            self.detector=VehicleDetection(stereovision_image.image0)
+        cars_img_one=self.detector.find_vehicles(stereovision_image.image0)
+        cars_img_two = self.detector.find_vehicles(stereovision_image.image1)
+        stereovision_image.vehicles = match_vehicles_stereo(cars_img_one, cars_img_two)
+
+        for vehicle_pair in stereovision_image.vehicles:
+            if not (vehicle_pair[0] and vehicle_pair[1]):
+                stereovision_image.ranges.append(None)
+                continue
+            position_estimator = PositionEstimationStereoVision(self.camera_model_1,self.camera_model_2)
+            estimated_range = position_estimator.estimate_range_stereo(mean_point(vehicle_pair[0]), mean_point(vehicle_pair[1]))
+            stereovision_image.ranges.append(estimated_range)
+
 
     def showVisuals(self, path,date):
         fig=plt.figure()
@@ -120,14 +129,15 @@ class RangeestimationVisualizer:
                     patches.Rectangle((- v.yPos + v.width, v.xPos - v.length), v.width, v.length, angle=v.angle,
                                       color=color))
 
+            for vehicle_pair,estimated_range in zip(stereo_vision_image.vehicles, stereo_vision_image.ranges):
+                vehicle_0 = vehicle_pair[0]
+                coord = mean_point(vehicle_0)
                 # show vehicle position in image
-                vehicleCoord = [v.xPos, v.yPos, v.zPos]
-                distance = util.distance(self.camera_model_1.getCameraPosition(), vehicleCoord)
-                image_coords = self.camera_model_velo_camera_0.projectToImage(vehicleCoord)
-                patch = patches.Rectangle(image_coords, 20, 20, color=color)
+
+                patch = patches.Rectangle(coord, 20, 20, color='red')
                 ax1.add_patch(patch)
                 # add distance description
-                ax1.text(image_coords[0], image_coords[1]+40, "{}m".format(distance), color=color)
+                ax1.text(coord[0], coord[1]+40, "{}m".format(estimated_range), color='red')
 
 
             #fig.draw
@@ -146,7 +156,11 @@ class StereoVisionImage:
         self.image1 = imageWithVehicles1
         self.real_vehicle_positions = real_vehicle_positions
         self.vehicles = None
+        self.ranges = None
 
-    def setVehicles(self, vehicles0, vehicles1):
-        self.vehicles0 = vehicles0
-        self.vehicles1 = vehicles1
+def mean_point(p):
+    mean_p = (
+        p[0][0] + 0.5 * (p[1][0] - p[0][0]),
+        p[0][1] + 0.5 * (p[1][1] - p[0][1])
+    )
+    return mean_p
