@@ -20,10 +20,15 @@ class VehiclePositions:
         filePath = os.path.join(trackletsPath, 'tracklet_labels.xml')
         self.parsed_xml = ET.parse(filePath).getroot()
 
+    def get_frame_count(self):
+        e = self.parsed_xml
+        count = int(e[0][0].text)
+        return count
+
     def getVehiclePosition(self, frame):
         e = self.parsed_xml
 
-        count=int (e[0][0].text)
+        count = self.get_frame_count()
         vehicles=[]
         for index in range(2,count+2):
             startFrame=int (e[0][index][4].text)
