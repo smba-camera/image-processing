@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(".")))
 
 import image_processing.vehicle_detection.Vehicle_detection as vd
 
+''' uses vehicle detection to mark all vehicles on the kitti images '''
+
 def runVisualization():
     path = os.path.abspath(os.path.join('..','data', 'images2'))
     sampleimg=cv2.imread(os.path.join(path,'0000000000.png'))

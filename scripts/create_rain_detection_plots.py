@@ -10,6 +10,7 @@ from image_processing.testimage_preprocessor import image_operations
 # make modules accessible for the script
 sys.path.append(os.path.abspath(os.path.join(".")))
 
+''' Creates plots for the detection rate of vehicles for images with rain '''
 
 path = os.path.abspath(os.path.join('data', 'trainingSamples','*vehicles','*','*.png'))
 detector=vd.VehicleDetection(np.zeros((64,64,3),np.uint8))

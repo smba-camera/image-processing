@@ -7,6 +7,8 @@ from image_processing.kitti_data import Kitti
 from image_processing.kitti_data import GroundtruthVisualizer, RangeestimationVisualizer
 import argparse
 
+''' shows the data from the kitti dataset along with range estimations for the vehicles '''
+
 def runVisualization(drive_num, visualizationType):
     path = os.path.abspath(os.path.join('data', 'kitti'))
     Dates = ['2011_09_26']

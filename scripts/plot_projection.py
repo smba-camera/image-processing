@@ -7,7 +7,7 @@ import image_processing.camera_model as camera_model
 import math
 import numpy
 
-
+''' creates a simple plot for showing functioning position estimation '''
 
 def projection(impl=0):
     camera_position = [5,1,1]

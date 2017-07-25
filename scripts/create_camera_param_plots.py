@@ -13,6 +13,8 @@ from image_processing.util import distance
 
 import plot_projection
 
+''' Creates plots for the influence of wrongly calculated camera calibration '''
+
 
 path = os.path.abspath(os.path.join('data', 'kitti'))
 date = '2011_09_26'

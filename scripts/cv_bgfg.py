@@ -2,7 +2,7 @@ import os
 import numpy as np
 import cv2
 
-# background Substraction using opencv
+''' background Substraction using opencv for rain detection'''
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel1 = np.ones((2,2),np.uint8)
