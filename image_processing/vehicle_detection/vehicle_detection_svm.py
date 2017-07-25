@@ -6,6 +6,7 @@ import glob
 import time
 import cPickle
 import laneline
+import os.path
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from skimage.feature import hog
@@ -17,52 +18,46 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 #%matplotlib inline
 
 
+# Define parameters for feature extraction
+color_space = 'LUV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 8  # HOG orientations
+pix_per_cell = 8 # HOG pixels per cell
+cell_per_block = 2 # HOG cells per block
+hog_channel = 0# Can be 0, 1, 2, or "ALL"
+spatial_size = (16, 16) # Spatial binning dimensions
+hist_bins = 32    # Number of histogram bins
+spatial_feat = True # Spatial features on or off
+hist_feat = True # Histogram features on or off
+hog_feat = True # HOG features on or off
+
 def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p
-    #train()
-    #print scaled_X.shape
-    #print y.shape
-    #print scaled_X[0].shape
-    #print "finished training"
+
+    if not (os.path.isfile(path_trained_model) and os.path.isfile(path_scalar_defintion)):
+        save_features()
+        train()
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
-    '''
-    image = cv2.imread('images2/0000000000.png')
-    track = (880, 450)
-    w_size = 80
-    windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
-                           y_start_stop=[track[1]-w_size,track[1]+w_size],
-                           xy_window=(128, 128), xy_overlap=(0.75, 0.75))
-    window_img = draw_boxes(image, windows, color=(0, 0, 255), thick=6)
-    windows = slide_window(image, x_start_stop=[track[0]-w_size,track[0]+w_size],
-                           y_start_stop=[track[1]-int(w_size),track[1]+int(w_size)],
-                           xy_window=(48, 48), xy_overlap=(0.75, 0.75))
-    window_img = draw_boxes(window_img, windows, color=(255, 0, 0), thick=6)
-    show_img(window_img)
-    '''
-    #print('Test Accuracy of SVC = ', round(svc.score(scaled_X, y), 4))
+
 
 
     THRES = 8 # Minimal overlapping boxes
     ALPHA = 0.5 # Filter parameter, weight of the previous measurements
 
-    #image = cv2.imread('test1.png')
     track_list = []#[np.array([880, 440, 76, 76])]
-    #track_list += [np.array([1200, 480, 124, 124])]
     THRES_LEN = 50
     Y_MIN = 40
 
     n_count = 0 # Frame counter
     boxes_p = [] # Store prev car boxes
 
-    # background=np.zeros((image.shape),np.uint8)
     heat_p = np.zeros((image_width, image_height))  # Store prev heat image
 
 def find_vehicles(image):
-    #background[345:720,19:1261]=img
-    #show_img(background)
-    show_img(frame_proc(image, lane=False, vis=False, showim=True))
+    return frame_proc(image, lane=False, vis=False)
 
+def show_vehicles(image):
+    show_img(frame_proc(image,lane=False,vis=True))
 
 
 
@@ -160,18 +155,6 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
     return features # Return list of feature vectors
 
 
-
-# Define parameters for feature extraction
-color_space = 'LUV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 8  # HOG orientations
-pix_per_cell = 8 # HOG pixels per cell
-cell_per_block = 2 # HOG cells per block
-hog_channel = 0# Can be 0, 1, 2, or "ALL"
-spatial_size = (16, 16) # Spatial binning dimensions
-hist_bins = 32    # Number of histogram bins
-spatial_feat = True # Spatial features on or off
-hist_feat = True # Histogram features on or off
-hog_feat = True # HOG features on or off
 
 def save_features():
     # Read in cars and notcars
@@ -489,7 +472,7 @@ def draw_labeled_bboxes(labels):
         size_m = (size_x + size_y) / 2
         x = size_x + bbox[0][0]
         y = size_y + bbox[0][1]
-        print x,y,size_x,size_y
+        #print x,y,size_x,size_y
         if size_x>9 and size_y>9:
             track_list_l.append(np.array([x, y, size_x, size_y]))
             if len(track_list) > 0:
@@ -509,77 +492,36 @@ def draw_labeled_bboxes(labels):
     return boxes
 
 
-def frame_proc(img, lane=False, video=False, vis=False, showim=False):
+def frame_proc(img, lane=False, vis=False):
     '''Returns the detected car boxes '''
-    if (video and n_count % 2 == 0) or not video:  # Skip every second video frame
-        global heat_p, boxes_p, n_count
-        heat = np.zeros_like(img[:, :, 0]).astype(np.float)
-        boxes = []
-        boxes = find_cars_in_subimages(img, 200, 375, 0, 500, 2.0, 2)
-        boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 1, 2)
-        boxes += find_cars_in_subimages(img, 200, 375, 650, 850, 2.0, 2)
-        boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
-        boxes += find_cars_in_subimages(img, 150, 300, 300, 700, 0.5, 3)
-        print len(boxes)
-        '''
-        for track in track_list:
-            y_loc = track[1] + track[3]
-            lane_w = (y_loc * 2.841 - 1170.0) / 3.0
-            if lane_w < 96:
-                lane_w = 96
-            lane_h = lane_w / 1.2
-            lane_w = max(lane_w, track[2])
-            xs = int(track[0] - lane_w)
-            xf = int(track[0] + lane_w)
-            if track[1] < Y_MIN:
-                track[1] = Y_MIN
-            ys = int(track[1] - lane_h)
-            yf = int(track[1] + lane_h)
-            if xf > 1242: xf = 1242
-            if ys < Y_MIN - 40: ys = Y_MIN - 40
-            if yf > 375: yf = 375
-            size_sq = lane_w / (0.015 * lane_w + 0.3)
-            scale = size_sq / 64.0
-            # Apply multi scale image windows
-            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale, 2)
-            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.25, 2)
-            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.5, 2)
-            boxes += find_cars_in_subimages(img, int(ys), int(yf), int(xs), int(xf), scale * 1.75, 2)
-            if vis:
-                cv2.rectangle(img, (int(xs), int(ys)), (int(xf), int(yf)), color=(0, 255, 0), thickness=3)
-        '''
-        heat = add_heat(heat, boxes)
-        heat_l = heat_p + heat
-        heat_p = heat
-        heat_l = apply_threshold(heat_l, THRES)  # Apply threshold to help remove false positives
+    global heat_p, boxes_p, n_count
+    heat = np.zeros_like(img[:, :, 0]).astype(np.float)
+    boxes = []
+    boxes = find_cars_in_subimages(img, 200, 375, 0, 500, 2.0, 2)
+    boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 1, 2)
+    boxes += find_cars_in_subimages(img, 200, 375, 650, 850, 2.0, 2)
+    boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
+    boxes += find_cars_in_subimages(img, 150, 300, 300, 700, 0.5, 3)
+    heat = add_heat(heat, boxes)
+    heat_l = heat_p + heat
+    heat_p = heat
+    heat_l = apply_threshold(heat_l, THRES)  # Apply threshold to help remove false positives
         # Visualize the heatmap when displaying
-        heatmap = np.clip(heat_l, 0, 255)
+    heatmap = np.clip(heat_l, 0, 255)
         # Find final boxes from heatmap using label function
-        labels = label(heatmap)
+    labels = label(heatmap)
         # print((labels[0]))
-        cars_boxes = draw_labeled_bboxes(labels)
-        boxes_p = cars_boxes
-
-    else:
-        cars_boxes = boxes_p
-
-    if (not (lane or video or vis or showim )):
+    cars_boxes = draw_labeled_bboxes(labels)
+    boxes_p = cars_boxes
+    if (not vis):
         # if now visualization parameter is set, return car boxes
         return cars_boxes
 
     if lane:  # If we was asked to draw the lane line, do it
-        if video:
-            img = laneline.draw_lane(img, True)
-        else:
-            img = laneline.draw_lane(img, False)
+        img = laneline.draw_lane(img, False)
     imp = draw_boxes(np.copy(img), cars_boxes, color=(0, 0, 255), thick=6)
-    if vis:
-        imp = draw_boxes(imp, boxes, color=(0, 255, 255), thick=2)
-        for track in track_list:
-            cv2.circle(imp, (int(track[0]), int(track[1])), 5, color=(255, 0, 255), thickness=4)
     n_count += 1
     return imp
-
 
 
 
