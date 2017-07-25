@@ -10,7 +10,7 @@ from image_processing.testimage_preprocessor import image_operations
 sys.path.append(os.path.abspath(os.path.join(".")))
 
 
-path = os.path.abspath(os.path.join('..','data', 'trainingSamples','*vehicles','*','*.png'))
+path = os.path.abspath(os.path.join('data', 'trainingSamples','*vehicles','*','*.png'))
 detector=vd.VehicleDetection(np.zeros((64,64,3),np.uint8))
 vallist= [1,1/2.0,1/4.0,1/8.0,1/16.0,1/32.0,1/64.0]
 classif_rate=[]
@@ -34,5 +34,7 @@ for i in range(0,len(vallist)):
     vallist[i]*=64
 plt.plot(vallist,classif_rate)
 plt.axis([1,64,0.5,1])
+plt.xlabel('pixel resolution x*x')
+plt.ylabel('correct classification of car vs. no-car')
 plt.savefig('resolutionGraph.png')
 plt.show()
