@@ -10,7 +10,7 @@ from image_processing.testimage_preprocessor import image_operations
 sys.path.append(os.path.abspath(os.path.join(".")))
 
 
-path = os.path.abspath(os.path.join('..','data', 'trainingSamples','*vehicles','*','*.png'))
+path = os.path.abspath(os.path.join('..','data','images2','*.png'))# 'trainingSamples','*vehicles','*','*.png'))
 detector=vd.VehicleDetection(np.zeros((64,64,3),np.uint8))
 vallist= [5.0,1/4.0,1/8.0,1/16.0,1/32.0,1/64.0]
 classif_rate=[]

@@ -36,6 +36,7 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     if not (os.path.isfile(path_trained_model) and os.path.isfile(path_scalar_defintion)):
         save_features()
         train()
+
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
 
@@ -165,6 +166,7 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
 
 def save_features():
     # Read in cars and notcars
+    os.path.join()
     images = glob.glob('*vehicles/*/*')
     cars = []
     notcars = []

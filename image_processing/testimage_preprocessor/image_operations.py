@@ -9,28 +9,28 @@ def lower_resolution(img, val):
     small=cv2.resize(img,(int(height*val),int(width*val)))
     return cv2.resize(small,(height,width))
 
-def setrainstreak_in_image(img,xpos_start,ypos_start,xpos_stop,ypos_stop,width):
+def setrainstreak_in_image(img,xpos_start,ypos_start,xpos_stop,ypos_stop,width,color):
     print (xpos_start,ypos_start),(xpos_stop,ypos_stop),width
-    cv2.line(img,(xpos_start,ypos_start),(xpos_stop,ypos_stop),color=(250,250,250),thickness=width)
+    cv2.line(img,(ypos_start,xpos_start),(ypos_stop,xpos_stop),color=color,thickness=width)
 
 
-def simulate_rain_by_gaussian(img,vertical=4, vertical_variance=1,horizontal=4,horizontal_variance=1,lenstreaks=3,variance_lenstreaks=1,widthstreak=1, variance_widthstreak=0.5,angle=20,variance_angle=3):
+def simulate_rain_by_gaussian(img,vertical=10, vertical_variance=2,horizontal=10,horizontal_variance=2,lenstreaks=3,variance_lenstreaks=1,widthstreak=1, variance_widthstreak=0.5,angle=20,variance_angle=8,color=180,color_variance=2):
     ypos_tot=0
     while ypos_tot<64:
-        xpos_start=max(int(np.random.normal(horizontal,horizontal_variance)),0)
+        xpos_start=max(int(np.random.normal(3,horizontal_variance)),0)
         while xpos_start<64:
-            ypos_start = max(int(np.random.normal(vertical, vertical_variance)+ypos_tot), 0)
+            ypos_start = max(int(np.random.normal(3, vertical_variance)+ypos_tot), 0)
             len=np.random.normal(lenstreaks,variance_lenstreaks)
             width=int(np.random.normal(widthstreak,variance_widthstreak))
             ang=np.random.normal(angle,variance_angle)
-            xpos_stop=min(int(math.sin(ang*math.pi/180.0)),64)
-            ypos_stop=min(int(math.cos(ang*math.pi/180.0)),64)
-            setrainstreak_in_image(img, xpos_start,ypos_start,xpos_stop,ypos_stop,width)
+            xpos_stop=xpos_start+min(int(math.cos(ang*math.pi/180.0)*len),64)
+            ypos_stop=ypos_start+min(int(math.sin(ang*math.pi/180.0)*len),64)
+            R=min(max(int(np.random.normal(color,color_variance)),0),255)
+            G = min(max(int(np.random.normal(color, color_variance)), 0), 255)
+            B = min(max(int(np.random.normal(color, color_variance)), 0), 255)
+            setrainstreak_in_image(img, xpos_start,ypos_start,xpos_stop,ypos_stop,width,(R,G,B))
             xpos_start+=int(np.random.normal(horizontal,horizontal_variance))
-            plt.figure()
-            plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-            plt.pause(5)
-            plt.close()
+
         ypos_tot+=int(np.random.normal(vertical, vertical_variance))
 
 

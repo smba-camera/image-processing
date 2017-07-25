@@ -22,7 +22,7 @@ class Kitti:
         matrix[j][3]=float(word)
 
     def initCamtoCamParams(self, filepath):
-        with open(filepath+'\calib_cam_to_cam.txt') as fp:
+        with open(os.path.join(filepath,'calib_cam_to_cam.txt')) as fp:
             lines = fp.readlines()
             ignored_lines = 2
             lines_per_camera = 8
@@ -69,7 +69,7 @@ class Kitti:
     def initVelotoCamParams(self,filepath, referenceCameraModel):
         rot_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         trans_vect = [0,0,0]
-        with open(filepath+'\calib_velo_to_cam.txt') as fp:
+        with open(os.path.join(filepath,'calib_velo_to_cam.txt')) as fp:
             for i,line in enumerate(fp):
                 if i==1:
                     j=0

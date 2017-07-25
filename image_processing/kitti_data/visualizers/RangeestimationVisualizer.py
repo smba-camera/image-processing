@@ -14,7 +14,7 @@ from image_processing.position_estimation import PositionEstimationStereoVision
 # detected cars within the kitti images and estimations for distances
 
 class RangeestimationVisualizer:
-    def __init__(self, kitti, drive_num,sampleimg):
+    def __init__(self, kitti, drive_num):
         self.camera_model_velo_camera_0 = kitti.getVeloCameraModel()
         self.camera_model_1 = kitti.getCameraModel(0)
         self.camera_model_2 = kitti.getCameraModel(1)
@@ -49,6 +49,7 @@ class RangeestimationVisualizer:
     def findVehiclesOnStereoImages(self, stereovision_image):
         if not self.vehicledetectioninit:
             self.detector=VehicleDetection(stereovision_image.image0)
+        self.vehicledetectioninit=1
         cars_img_one=self.detector.find_vehicles(stereovision_image.image0)
         cars_img_two = self.detector.find_vehicles(stereovision_image.image1)
         stereovision_image.vehicles = match_vehicles_stereo(cars_img_one, cars_img_two)
@@ -64,20 +65,21 @@ class RangeestimationVisualizer:
 
     def showVisuals(self, path,date):
         fig=plt.figure()
-        plt.get_current_fig_manager().window.state('zoomed')
+        #plt.get_current_fig_manager().window.state('zoomed') works only in win
         i=0
         vehiclePositions = VehiclePositions(path,date, self.drive_num)
 
         syncFolder = "{0}_drive_{1}_sync".format(date, self.drive_num)
         imgFolder = os.path.join(path, date, syncFolder, date, syncFolder, "image_{}",'data')
-        cam0_imgPath = imgFolder.format('00')
-        cam1_imgPath = imgFolder.format('01')
+        cam0_imgPath = imgFolder.format('02')
+        cam1_imgPath = imgFolder.format('03')
         images_camera_0 = map(lambda img: os.path.join(cam0_imgPath, img), os.listdir(cam0_imgPath))
         images_camera_1 = map(lambda img: os.path.join(cam1_imgPath, img), os.listdir(cam1_imgPath))
 
         # check that for every frame of one camera there is an image from the other
         assert(len(images_camera_0) == len(images_camera_1))
-
+        images_camera_0.sort()
+        images_camera_1.sort()
         # load all images:
         sys.stdout.write("Loading images...")
         start_time = time.time()
@@ -95,7 +97,8 @@ class RangeestimationVisualizer:
 
         sys.stdout.write("Searching for Vehicles in {} images...".format(len(loaded_images)))
         start_time = time.time()
-        # TODO: implement
+        for stereo_vision_image in loaded_images:
+            self.findVehiclesOnStereoImages(stereo_vision_image)
         sys.stdout.write("{}s\n".format(time.time() - start_time))
 
 
@@ -113,7 +116,7 @@ class RangeestimationVisualizer:
             #print ('new Image:')
             ax1=fig.add_subplot(211)
             ax1.imshow(img0,cmap='gray')
-
+            plt.pause(1)
 
             ax2=fig.add_subplot(212)
 
@@ -155,8 +158,8 @@ class StereoVisionImage:
         self.image0 = imageWithVehicles0
         self.image1 = imageWithVehicles1
         self.real_vehicle_positions = real_vehicle_positions
-        self.vehicles = None
-        self.ranges = None
+        self.vehicles = []
+        self.ranges = []
 
 def mean_point(p):
     mean_p = (
