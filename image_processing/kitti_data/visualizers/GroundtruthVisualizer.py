@@ -11,11 +11,12 @@ import image_processing.util.Util as util
 # detected cars within the kitti images and estimations for distances
 
 class GroundtruthVisualizer:
-    def __init__(self, kitti, drive_num):
+    def __init__(self, kitti, drive_num, yield_frames=False):
         self.camera_model_velo_camera_0 = kitti.getVeloCameraModel()
         self.camera_model_1 = kitti.getCameraModel(0)
         self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
+        self.yield_frames = yield_frames
 
     def getVehicleColor(self, name):
         color='none'
@@ -56,7 +57,7 @@ class GroundtruthVisualizer:
 
     def showVisuals(self, path,date):
         fig=plt.figure()
-        plt.get_current_fig_manager().window.state('zoomed')
+        #plt.get_current_fig_manager().window.state('zoomed')
         i=0
         vehiclePositions = VehiclePositions(path,date, self.drive_num)
 
@@ -135,9 +136,13 @@ class GroundtruthVisualizer:
             ax2.set_ylim([0,100])
             ax2.set_xlim([-25,25])
             ax2.set_aspect(1)
-            plt.pause(0.00000001)
-            fig.clear()
 
+            if self.yield_frames:
+                yield fig
+            else:
+                plt.pause(0.00000001)
+
+            fig.clear()
             #time.sleep(10)
             i+=1
 
