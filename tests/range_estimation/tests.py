@@ -1,5 +1,6 @@
 import image_processing.position_estimation
 import image_processing.camera_model
+import math
 
 def test_range_estimation():
     cm1 = image_processing.camera_model.CameraModel()
@@ -15,5 +16,8 @@ def test_range_estimation():
 
     estimated_range = re.estimate_range_stereo(img_coord1,img_coord2)
     expected_range = 17.3205
-    assert((estimated_range - expected_range) < 0.0001)
+    success = (math.fabs(estimated_range - expected_range)) < 0.0001
+    if not success:
+        print("test_range_estimation(): actual_range: {} expected_range: {}".format(estimated_range, expected_range))
+    assert(success)
     #print("test_range_estimation: estimated range: {}".format(estimated_range))
