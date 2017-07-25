@@ -1,4 +1,4 @@
-from vehicle_detection_svm import init, find_vehicles,show_vehicles
+from vehicle_detection_svm import init, find_vehicles,show_vehicles,predict64by64image
 import os,glob
 
 
@@ -11,3 +11,5 @@ class VehicleDetection:
         return find_vehicles(img)
     def show_vehicles(self, img):
         show_vehicles(img)
+    def predict(selfself,img):
+        return predict64by64image(img)

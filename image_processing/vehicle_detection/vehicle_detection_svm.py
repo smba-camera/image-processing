@@ -454,6 +454,17 @@ def len_points(p1, p2):  # Distance beetween two points
 def track_to_box(p):  # Create box coordinates out of its center and span
     return ((int(p[0] - p[2]), int(p[1] - p[3])), (int(p[0] + p[2]), int(p[1] + p[3])))
 
+def predict64by64image(img):
+    img=convert_color(img)
+
+    features=[]
+    file_features = img_features(img, spatial_feat, hist_feat, hog_feat, hist_bins, orient,
+                                 pix_per_cell, cell_per_block, hog_channel)
+    features.append(np.concatenate(file_features))
+    X = np.vstack((features)).astype(np.float64)
+    scaled_X = X_scaler.transform(X)
+    return svc.predict(scaled_X[0])
+
 
 def draw_labeled_bboxes(labels):
     global track_list
