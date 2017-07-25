@@ -53,6 +53,13 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
 
     heat_p = np.zeros((image_width, image_height))  # Store prev heat image
 
+def reset(image_width,image_height):
+
+    track_list = []
+    n_count = 0  # Frame counter
+    boxes_p = []  # Store prev car boxes
+    heat_p = np.zeros((image_width, image_height))  # Store prev heat image
+
 def find_vehicles(image):
     return frame_proc(image, lane=False, vis=False)
 

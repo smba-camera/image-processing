@@ -23,7 +23,7 @@ for val in vallist:
         else:
             is_car=1.0
         img=cv2.imread(image)
-        img=image_operations.simulate_rain_by_gaussian(img,val)
+        img=image_operations.simulate_rain_by_gaussian(img)
         plt.figure()
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.pause(5)

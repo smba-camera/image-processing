@@ -6,16 +6,20 @@ from ..vehicle_positions import VehiclePositions
 import cv2
 import sys
 import image_processing.util.Util as util
+import image_processing.vehicle_detection.Vehicle_detection as vd
+
 
 
 # detected cars within the kitti images and estimations for distances
 
 class RangeestimationVisualizer:
-    def __init__(self, kitti, drive_num):
+    def __init__(self, kitti, drive_num,sampleimg):
         self.camera_model_velo_camera_0 = kitti.getVeloCameraModel()
         self.camera_model_1 = kitti.getCameraModel(0)
         self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
+        self.vehicledetectioninit=0
+        self.detector
 
     def getVehicleColor(self, name):
         color='none'
@@ -41,16 +45,11 @@ class RangeestimationVisualizer:
         ''' finds vehicles within the image. Will just '''
         return vehiclePositions.getVehiclePosition(imgId)
 
-    def findVehiclesOnImages(self, img1, img2, realVehiclePositions=None):
-        '''Returns a list of tuples (RectancleOnImg1, RectanleOnImg2)'''
-        img_coords = []
-
-        # fake implementation for the time the implementation of the detection of vehicles is not finished
-        for v in realVehiclePositions:
-            img_coord_0 = self.camera_model_velo_camera_0.projectToImage([v.xPos, v.yPos, v.zPos])
-            # TODO: next line is currently wrong (projection to image0)
-            img_coord_1 = self.camera_model_velo_camera_0.projectToImage([v.xPos, v.yPos, v.zPos])
-            img_coords.append((img_coord_0, img_coord_1))
+    def findVehiclesOnStereoImages(self, imagepair):
+        if not self.vehicledetectioninit:
+            self.detector=vd.VehicleDetection(imagepair[0])
+        cars_img_one=self.detector.find_vehicles(imagepair[0])
+        cars_img_two = self.detector.find_vehicles(imagepair[1])
 
         return img_coords
 
