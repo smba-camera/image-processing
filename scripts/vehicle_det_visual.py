@@ -15,7 +15,7 @@ def runVisualization():
     images.sort()
     for image in images:
         img=cv2.imread(image)
-        detector.find_vehicles(img)
+        detector.show_vehicles(img)
 
 if __name__ == "__main__":
     runVisualization()
