@@ -6,7 +6,7 @@ from ..vehicle_positions import VehiclePositions
 import cv2
 import sys
 import image_processing.util.Util as util
-import image_processing.vehicle_detection.Vehicle_detection as vd
+from image_processing.vehicle_detection import VehicleDetection,match_vehicles_stereo
 
 
 
@@ -47,11 +47,11 @@ class RangeestimationVisualizer:
 
     def findVehiclesOnStereoImages(self, imagepair):
         if not self.vehicledetectioninit:
-            self.detector=vd.VehicleDetection(imagepair[0])
-        cars_img_one=self.detector.find_vehicles(imagepair[0])
-        cars_img_two = self.detector.find_vehicles(imagepair[1])
-
-        return img_coords
+            self.detector=VehicleDetection(imagepair.image0)
+        cars_img_one=self.detector.find_vehicles(imagepair.image0)
+        cars_img_two = self.detector.find_vehicles(imagepair.image1)
+        imagepair.vehicles = match_vehicles_stereo(cars_img_one,cars_img_two)
+        
 
     def showVisuals(self, path,date):
         fig=plt.figure()
@@ -145,8 +145,7 @@ class StereoVisionImage:
         self.image0 = imageWithVehicles0
         self.image1 = imageWithVehicles1
         self.real_vehicle_positions = real_vehicle_positions
-        self.vehicles0 = None
-        self.vehicles1 = None
+        self.vehicles = None
 
     def setVehicles(self, vehicles0, vehicles1):
         self.vehicles0 = vehicles0
