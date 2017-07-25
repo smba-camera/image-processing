@@ -126,7 +126,7 @@ class ExtrinsicModel:
 
     def getDirection(self):
         vector = numpy.matrix([1,1,1]).transpose()
-        rot_mat_inv = numpy.linalg.inv(self.getMatrix())
+        rot_mat_inv = numpy.linalg.inv(self.getRotationMatrix())
         result = numpy.matmul(rot_mat_inv, vector)
         return numpy.array(result.transpose()).tolist()[0] # convert to normal python list
 

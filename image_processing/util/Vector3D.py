@@ -47,14 +47,18 @@ class Vector3D:
         return recursive_search(target_point, self.start_point, 10)
 
     def closest_points_to_line(self, line):
+        # source: http://geomalgorithms.com/a07-_distance.html
+        # Wc = P(sc*u) - tc*v
+        # => (u . u)*sc - (u . v)*tc = -u . w0
+        # => (v . u)*sc - (v . v)*tc = -v . w0
         u = self.vector.transpose().tolist()[0] # convert from numpy matrix to normal list
         v = line.vector.transpose().tolist()[0]
-        w = self.start_point - line.start_point
+        w0 = line.start_point - self.start_point
         a = numpy.dot(u,u)
         b = numpy.dot(u,v)
         c = numpy.dot(v,v)
-        d = numpy.dot(u,w)
-        e = numpy.dot(u,w)
+        d = numpy.dot(u,w0)
+        e = numpy.dot(v,w0)
         D = a*c - b*b
 
         epsilon = 0.0000001
@@ -67,8 +71,14 @@ class Vector3D:
             tc = (a*e - b*d) / D
         #dP = w + (sc * u) - (tc * v)
 
-        p1 = self.start_point + sc * self.vector
-        p2 = line.start_point + tc * v
+        sc_val = sc if type(sc) == float else sc[0]
+        tc_val = tc if type(tc) == float else tc[0]
+        p1 = self.start_point + sc_val * self.vector
+        v_npArray =  numpy.matrix(v).transpose()
+        p2 = line.start_point + tc_val * line.vector
+
+        p1 = numpy.array(p1.transpose()).tolist()
+        p2 = numpy.array(p2.transpose()).tolist()
 
         return (p1, p2)
 

@@ -38,9 +38,9 @@ def projection(impl=0):
     # closestpoint:yellow
     color = ['b', 'y', 'c']
 
-    plot_in_3d(x, y, z, real_coords_calc, colors=color)
+    plot_in_3d(x, y, z, vectors=[real_coords_calc], colors=color)
 
-def plot_in_3d(x, y, z, vector, colors=['b']):
+def plot_in_3d(x, y, z, vectors=[], colors=['b']):
     fig = pyplot.figure()
     # axis
     plot = fig.add_subplot(111, projection='3d')
@@ -58,10 +58,10 @@ def plot_in_3d(x, y, z, vector, colors=['b']):
     [plot.plot([dot_x, dot_x], [dot_y, dot_y], [0, dot_z], '-', linewidth=2, c='b', alpha=0.3) for dot_x, dot_y, dot_z in
      zip(x, y, z)]
 
-    if vector:
+    for vector in vectors:
 
         start_point = vector.start_point.transpose().tolist()[0]
-        next_point = (vector.start_point + vector.vector).transpose().tolist()[0]
+        next_point = (vector.start_point + vector.vector*3).transpose().tolist()[0]
         p = list(zip(start_point,next_point))
         plot.plot(p[0], p[1], p[2], '-', linewidth=3, c='r')
         plot.plot([start_point[0]],[start_point[1]],[start_point[2]], marker='o', c='k')

@@ -10,12 +10,11 @@ class PositionEstimationStereoVision():
         vect_one = self.camera_model_one.projectToWorld(pos_img_one)
         vect_two = self.camera_model_two.projectToWorld(pos_image_two)
 
-        #print("\nvect1: \n{}\nVect2: \n{}\n".format(vect_one.vector, vect_two.vector))
         p1, p2 = vect_one.closest_points_to_line(vect_two)
-        vect = p1-p2
+        vect = numpy.array(p2)-numpy.array(p1)
         vect *= 0.5
         point_in_between = p1 + vect
-        return point_in_between
+        return numpy.array(point_in_between).tolist()[0]
 
     def estimate_range_stereo(self, pos_img_one, pos_image_two):
         estimated_pos = self.estimate_position(pos_img_one, pos_image_two)
