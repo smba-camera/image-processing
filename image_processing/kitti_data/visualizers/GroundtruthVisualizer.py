@@ -65,8 +65,14 @@ class GroundtruthVisualizer:
         imgFolder = os.path.join(path, date, syncFolder, date, syncFolder, "image_{}",'data')
         cam0_imgPath = imgFolder.format('00')
         cam1_imgPath = imgFolder.format('01')
-        images_camera_0 = map(lambda img: os.path.join(cam0_imgPath, img), os.listdir(cam0_imgPath))
-        images_camera_1 = map(lambda img: os.path.join(cam1_imgPath, img), os.listdir(cam1_imgPath))
+        images_camera_0 = [
+            os.path.join(cam0_imgPath, img) for img in os.listdir(cam0_imgPath)
+        ]
+        images_camera_1 = [
+            os.path.join(cam1_imgPath, img) for img in os.listdir(cam1_imgPath)
+        ]
+        images_camera_0.sort()
+        images_camera_1.sort()
 
         # check that for every frame of one camera there is an image from the other
         assert(len(images_camera_0) == len(images_camera_1))
