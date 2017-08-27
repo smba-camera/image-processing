@@ -7,7 +7,7 @@ import time
 import cPickle
 import laneline
 import os.path
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from skimage.feature import hog
 from sklearn.model_selection import train_test_split
@@ -33,17 +33,16 @@ hog_feat = True # HOG features on or off
 def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p
 
+    print path_trained_model
     if not (os.path.isfile(path_trained_model) and os.path.isfile(path_scalar_defintion)):
-        save_features()
-        train()
+        save_features(path_scalar_defintion)
+        train(path_trained_model)
 
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
 
-
-
-    THRES = 8 # Minimal overlapping boxes
-    ALPHA = 0.5 # Filter parameter, weight of the previous measurements
+    THRES = 8
+    ALPHA = 0.8 # Filter parameter, weight of the previous measurements
 
     track_list = []#[np.array([880, 440, 76, 76])]
     THRES_LEN = 50
@@ -51,7 +50,6 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
 
     n_count = 0 # Frame counter
     boxes_p = [] # Store prev car boxes
-
     heat_p = np.zeros((image_width, image_height))  # Store prev heat image
 
 def reset(image_width,image_height):
@@ -164,10 +162,10 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
 
 
 
-def save_features():
+def save_features(path_scalar):
     # Read in cars and notcars
-    os.path.join()
-    images = glob.glob('*vehicles/*/*')
+    path=os.path.dirname(path_scalar)
+    images = glob.glob(os.path.join(path,'*vehicles/*/*'))
     cars = []
     notcars = []
 
@@ -188,6 +186,7 @@ def save_features():
                             cell_per_block=cell_per_block,
                             hog_channel=hog_channel, spatial_feat=spatial_feat,
                             hist_feat=hist_feat, hog_feat=hog_feat)
+    #print 'done extracting car features'
     #print 'Car samples: ', len(car_features)
     notcar_features = extract_features(notcars, color_space=color_space,
                             spatial_size=spatial_size, hist_bins=hist_bins,
@@ -196,19 +195,21 @@ def save_features():
                             hog_channel=hog_channel, spatial_feat=spatial_feat,
                             hist_feat=hist_feat, hog_feat=hog_feat)
     #print 'Notcar samples: ', len(notcar_features)
+    #print 'done extracting not car features'
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
     X_scaler = StandardScaler().fit(X)  # Fit a per-column scaler
-    with open('car_features.pkl','wb') as fid:
+    #print 'done building scalar'
+    with open(os.path.join(path,'car_features.pkl'),'wb') as fid:
         cPickle.dump(car_features,fid)
-    with open('notcar_features.pkl','wb') as fid2:
+    with open(os.path.join(path,'notcar_features.pkl'),'wb') as fid2:
         cPickle.dump(notcar_features,fid2)
-    with open('scalar.pkl','wb') as fid5:
+    with open(os.path.join(path,'scalar.pkl'),'wb') as fid5:
         cPickle.dump(X_scaler,fid5)
 
-def load_features():
-    with open('car_features.pkl', 'rb') as fid3:
+def load_features(feature_path):
+    with open(os.path.join(feature_path,'car_features.pkl'), 'rb') as fid3:
         car_features=cPickle.load(fid3)
-    with open('notcar_features.pkl', 'rb') as fid4:
+    with open(os.path.join(feature_path,'notcar_features.pkl'), 'rb') as fid4:
         notcar_features=cPickle.load(fid4)
     return car_features,notcar_features
 
@@ -220,26 +221,28 @@ def load_scalar(path_scalar_definition):
 # Define the labels vector
 
 
-def train():
-    car_features, notcar_features = load_features()
+def train(path_trained_model):
+    car_features, notcar_features = load_features(os.path.dirname(path_trained_model))
+    #print 'done loading features'
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
     X_scaler = StandardScaler().fit(X)  # Fit a per-column scaler
     scaled_X = X_scaler.transform(X)  # Apply the scaler to X
 
     y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+
     # Split up data into randomized training and test sets
     X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=0.2, random_state=22)
     print('Using:',orient,'orientations', pix_per_cell,
         'pixels per cell and', cell_per_block,'cells per block')
     print('Feature vector length:', len(X_train[0]))
-    svc = LinearSVC(loss='hinge') # Use a linear SVC
+    svc = SVC(max_iter=500,probability=True) # Use a linear SVC
     t=time.time() # Check the training time for the SVC
     svc.fit(scaled_X, y) # Train the classifier
     t2 = time.time()
     print(round(t2-t, 2), 'Seconds to train SVC...')
     print('Test Accuracy of SVC = ', round(svc.score(scaled_X, y), 4)) # Check the score of the SVC
     #svc.save
-    with open('svm_model.pkl','wb') as fid:
+    with open(path_trained_model,'wb') as fid:
         cPickle.dump(svc,fid)
 
 def load_trained_model(path_trained_model):
@@ -426,13 +429,12 @@ def find_cars_in_subimages(img, ystart, ystop, xstart, xstop, scale, step):
             features.append(np.concatenate(file_features))
             X = np.vstack((features)).astype(np.float64)
             scaled_X = X_scaler.transform(X)
-            test_prediction = svc.predict(scaled_X[0])
-            if test_prediction == 1:
-                xbox_left = np.int(xleft * scale) + xstart
-                ytop_draw = np.int(ytop * scale)
-                win_draw = np.int(window * scale)
-                boxes.append(((int(xbox_left), int(ytop_draw + ystart)),
-                              (int(xbox_left + win_draw), int(ytop_draw + win_draw + ystart))))
+            test_prediction = svc.predict_proba(scaled_X[0])
+            xbox_left = np.int(xleft * scale) + xstart
+            ytop_draw = np.int(ytop * scale)
+            win_draw = np.int(window * scale)
+            boxes.append(((int(xbox_left), int(ytop_draw + ystart)),
+                          (int(xbox_left + win_draw), int(ytop_draw + win_draw + ystart)),test_prediction[0][1]))
 
     return boxes
 
@@ -443,7 +445,7 @@ def add_heat(heatmap, bbox_list):
     for box in bbox_list:
         # Add += 1 for all pixels inside each bbox
         # Assuming each "box" takes the form ((x1, y1), (x2, y2))
-        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += box[2]
     return heatmap  # Return updated heatmap
 
 
@@ -517,15 +519,22 @@ def frame_proc(img, lane=False, vis=False):
     global heat_p, boxes_p, n_count
     heat = np.zeros_like(img[:, :, 0]).astype(np.float)
     boxes = []
+    '''
     boxes = find_cars_in_subimages(img, 200, 375, 0, 500, 2.0, 2)
     boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 1, 2)
-    boxes += find_cars_in_subimages(img, 200, 375, 650, 850, 2.0, 2)
+    boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 2.0, 2)
     boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
-    boxes += find_cars_in_subimages(img, 150, 300, 300, 700, 0.5, 3)
+    '''
+    boxes += find_cars_in_subimages(img, 150, 375, 0, 1100, 0.5, 3)
     heat = add_heat(heat, boxes)
     heat_l = heat_p + heat
-    heat_p = heat
-    heat_l = apply_threshold(heat_l, THRES)  # Apply threshold to help remove false positives
+    heat_p = [ALPHA * i for i in heat]
+
+    #might want to update the heatmap positions Kalman Filter style if predictions are possible
+
+    heat_l = apply_threshold(heat_l, THRES)
+    show_img(heat_l)
+    # Apply threshold to help remove false positives
         # Visualize the heatmap when displaying
     heatmap = np.clip(heat_l, 0, 255)
         # Find final boxes from heatmap using label function
