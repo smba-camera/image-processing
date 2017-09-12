@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import time
 from sklearn.metrics import mean_squared_error
 
 x_cor = 9  # Number of corners to find
@@ -13,8 +14,10 @@ objp = np.zeros((y_cor * x_cor, 3), np.float32)
 objp[:, :2] = np.mgrid[0:x_cor, 0:y_cor].T.reshape(-1, 2)
 #mtx = np.ndarray([[0,0,0],[0,0,0],[0,0,0]])
 #dist= np.ndarray([0,0,0,0,0])
-mtx = [[7.215377e+02, 0.000000e+00, 6.095593e+02],[0.000000e+00, 7.215377e+02, 1.728540e+02], [0.000000e+00, 0.000000e+00, 1.000000e+00]]
-dist= [-3.728755e-01, 2.037299e-01, 2.219027e-03, 1.383707e-03, -7.233722e-02]
+
+#should me in an init function and read out from camera model
+mtx = [[7.215377e+02, 0.000000e+00, 6.095593e+02],[0.000000e+00, 7.215377e+02, 1.728540e+02], [0.000000e+00, 0.000000e+00, 1.000000e+00]] #camera matrix
+dist= [-3.728755e-01, 2.037299e-01, 2.219027e-03, 1.383707e-03, -7.233722e-02]  #distortion coefficients
 mtx=np.array(mtx)
 dist=np.array(dist)
 
@@ -115,8 +118,8 @@ def s_hls(img):
     return hls[:, :, 2]
 
 
-IMAGE_H = 223
-IMAGE_W = 1280
+IMAGE_H = 160
+IMAGE_W = 1242
 
 
 # Sharpen image
@@ -139,8 +142,8 @@ def contr_img(img, s=1.0):
 
 # Create perspective image transformation matrices
 def create_M():
-    src = np.float32([[0, 673], [1207, 673], [0, 450], [1280, 450]])
-    dst = np.float32([[569, 223], [711, 223], [0, 0], [1280, 0]])
+    src = np.float32([[0, 370], [1242, 370], [0, 210], [1242, 210]])
+    dst = np.float32([[569, 160], [711, 160], [0, 0], [1242, 0]])
     M = cv2.getPerspectiveTransform(src, dst)
     Minv = cv2.getPerspectiveTransform(dst, src)
     return M, Minv
@@ -149,7 +152,7 @@ def create_M():
 # Main image transformation routine to get a warped image
 def transform(img, M):
     undist = undistort(img)
-    img_size = (1280, 223)
+    img_size = (1242, 160)
     warped = cv2.warpPerspective(undist, M, img_size)
     warped = sharpen_img(warped)
     warped = contr_img(warped, 1.1)
@@ -170,6 +173,8 @@ def show_img(img):
     if len(img.shape) == 3:
         plt.figure()
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        plt.pause(5)
+        plt.close()
     else:
         plt.figure()
         plt.imshow(img, cmap='gray')
@@ -236,7 +241,7 @@ def px_to_m(px):
 
 # Calculate offset from the lane center
 def lane_offset(left, right):
-    offset = 1280 / 2.0 - (pol_calc(left, 1.0) + pol_calc(right, 1.0)) / 2.0
+    offset = 1242 / 2.0 - (pol_calc(left, 1.0) + pol_calc(right, 1.0)) / 2.0
     return px_to_m(offset)
 
 
@@ -393,33 +398,17 @@ def find(img, left=True, p_ord=POL_ORD, pol=np.zeros(POL_ORD + 1), max_n=0):
     x_pos = []
     y_pos = []
     max_l = img.shape[0]  # number of lines in the img
+    print max_l
     for i in range(max_l - int(max_l * RANGE)):
         y = max_l - i  # Line number
         y_01 = y / float(max_l)  # y in [0..1] scale
-        if abs(pol[-1]) > 0:  # If it not a still image or the first video frame
-            if y_01 >= max_n + SPEED:  # If we can use pol to find center of the virtual sensor from the previous frame
-                cent = int(pol_calc(pol, y_01 - SPEED))
-                if y == max_l:
-                    if left:
-                        cent = 605
-                    else:
-                        cent = 690
-            else:  # Prolong the pol tangentially
-                k = pol_d(pol, max_n)
-                b = pol_calc(pol, max_n) - k * max_n
-                cent = int(k * y_01 + b)
-            if cent > 1280 - WINDOW_SIZE:
-                cent = 1280 - WINDOW_SIZE
-            if cent < WINDOW_SIZE:
-                cent = WINDOW_SIZE
-        else:  # If it is a still image
-            if len(x_pos) > 0:  # If there are some points detected
-                cent = x_pos[-1]  # Use the previous point as a senser center
-            else:  # Initial guess on line position
-                if left:
-                    cent = 605
-                else:
-                    cent = 690
+        if len(x_pos) > 0:  # If there are some points detected
+            cent = x_pos[-1]  # Use the previous point as a senser center
+        else:  # Initial guess on line position
+            if left:
+                cent = 605
+            else:
+                cent = 690
         if left:  # Subsample image
             sens = 0.5 * s_hls(img[max_l - 1 - i:max_l - i, cent - WINDOW_SIZE:cent + WINDOW_SIZE, :]) \
                    + img[max_l - 1 - i:max_l - i, cent - WINDOW_SIZE:cent + WINDOW_SIZE, 2]
@@ -470,22 +459,10 @@ def get_lane(img, plot=False):
     ploty = np.linspace(0, 1, num=warp.shape[0])
     x2, y2 = find(warp)
     x, y = find(warp, False)
-    show_img(warp)
-    print x,y
     right_fitx = pol_calc(best_pol_ord(x, y)[0], ploty)
     left_fitx = pol_calc(best_pol_ord(x2, y2)[0], ploty)
-    y2 = np.int16(np.array(y2) * 223.0)  # Convert into [0..223] scale
-    y = np.int16(np.array(y) * 223.0)
-    if plot:
-        for i in range(len(x)):  # Plot points
-            cv2.circle(warp, (x[i], y[i]), 1, (255, 50, 255))
-        for i in range(len(x2)):
-            cv2.circle(warp, (x2[i], y2[i]), 1, (255, 50, 250))
-        show_img(warp)
-        plt.axis('off')
-        plt.plot(left_fitx, ploty * IMAGE_H, color='green', linewidth=1)
-        plt.plot(right_fitx, ploty * IMAGE_H, color='green', linewidth=1)
-        cv2.imwrite('img.jpg', warp)
+    y2 = np.int16(np.array(y2) * 160.0)  # Convert into [0..223] scale
+    y = np.int16(np.array(y) * 160.0)
     return img, left_fitx, right_fitx, ploty * IMAGE_H
 
 
@@ -494,10 +471,7 @@ def draw_lane_img_p(img_path):
 
 
 def draw_lane(img, video=False):
-    if video:
-        img, left_fitx, right_fitx, ploty, left, right = get_lane_video(img)
-    else:
-        img, left_fitx, right_fitx, ploty = get_lane(img, False)
+    img, left_fitx, right_fitx, ploty = get_lane(img, False)
     warp_zero = np.zeros((IMAGE_H, IMAGE_W)).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
     # Recast the x and y points into usable format for cv2.fillPoly()
@@ -510,18 +484,6 @@ def draw_lane(img, video=False):
     newwarp = cv2.warpPerspective(color_warp, Minv, (img.shape[1], img.shape[0]))
     # Combine the result with the original image
     result = cv2.addWeighted(img, 1.0, newwarp, 0.6, 0)
-    if video:
-        # Add text information on the frame
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        text_pos = 'Pos of the car: ' + str(np.round(lane_offset(left, right), 2)) + ' m'
-        radius = np.round(lane_curv(left, right), 2)
-        if radius >= MAX_RADIUS:
-            radius = 'Inf'
-        else:
-            radius = str(radius)
-        text_rad = 'Radius: ' + radius + ' m'
-        cv2.putText(result, text_pos, (10, 25), font, 1, (255, 255, 255), 2)
-        cv2.putText(result, text_rad, (10, 75), font, 1, (255, 255, 255), 2)
     return (result)
 
 
@@ -539,87 +501,6 @@ n_count = 0  # Frame counter
 r_n = 0  # Number of frames with unsuccessful line detection
 l_n = 0
 
-
-def get_lane_video(img):
-    global right_fit_p, left_fit_p, r_len, l_len, n_count, r_n, l_n
-    sw = False
-    warp = transform(img, M)
-    img = undistort(img)
-    if l_n < MAX_N and n_count > 0:
-        x, y = find(warp, pol=left_fit_p, max_n=l_len)
-    else:
-        x, y = find(warp)
-    if len(x) > MIN_POINTS:
-        left_fit, mse_l = best_pol_ord(x, y)
-        if mse_l > DEV_POL * 9 and n_count > 0:
-            left_fit = left_fit_p
-            l_n += 1
-        else:
-            l_n /= 2
-    else:
-        left_fit = left_fit_p
-        l_n += 1
-    if r_n < MAX_N and n_count > 0:
-        x2, y2 = find(warp, False, pol=right_fit_p, max_n=r_len)
-    else:
-        x2, y2 = find(warp, False)
-    if len(x2) > MIN_POINTS:
-        right_fit, mse_r = best_pol_ord(x2, y2)
-        if mse_r > DEV_POL * 9 and n_count > 0:
-            right_fit = right_fit_p
-            r_n += 1
-        else:
-            r_n /= 2
-    else:
-        right_fit = right_fit_p
-        r_n += 1
-    if n_count > 0:  # if not the first video frame
-        # Apply filter
-        if len(left_fit_p) == len(left_fit):  # If new and prev polinomial have the same order
-            left_fit = pol_shift(left_fit_p, -SPEED) * (1.0 - len(x) / ((1.0 - RANGE) * IMAGE_H)) + left_fit * (
-            len(x) / ((1.0 - RANGE) * IMAGE_H))
-        else:
-            left_fit = smooth_dif_ord(left_fit_p, x, y, len(left_fit) - 1)
-        l_len = y[-1]
-        if len(right_fit_p) == len(right_fit):
-            right_fit = pol_shift(right_fit_p, -SPEED) * (1.0 - len(x2) / ((1.0 - RANGE) * IMAGE_H)) + right_fit * (
-            len(x2) / ((1.0 - RANGE) * IMAGE_H))
-        else:
-            right_fit = smooth_dif_ord(right_fit_p, x2, y2, len(right_fit) - 1)
-        r_len = y2[-1]
-
-    if len(x) > MIN_POINTS and len(x2) <= MIN_POINTS:  # If we have only left line
-        lane_w = pol_calc(right_fit_p, 1.0) - pol_calc(left_fit_p, 1.0)
-        right_fit = smooth_dif_ord(right_fit_p, pol_calc(equidistant(left_fit, lane_w, max_l=l_len), y),
-                                   y, len(left_fit) - 1)
-        r_len = l_len
-        r_n /= 2
-    if len(x2) > MIN_POINTS and len(x) <= MIN_POINTS:  # If we have only right line
-        lane_w = pol_calc(right_fit_p, 1.0) - pol_calc(left_fit_p, 1.0)
-        # print(lane_w)
-        left_fit = smooth_dif_ord(left_fit_p, pol_calc(equidistant(right_fit, -lane_w, max_l=r_len), y2),
-                                  y2, len(right_fit) - 1)
-        l_len = r_len
-        l_n /= 2
-    if (l_n < MAX_N and r_n < MAX_N):
-        max_y = max(RANGE, l_len, r_len)
-    else:
-        max_y = 1.0  # max(RANGE, l_len, r_len)
-        sw = True
-    d1 = pol_calc(right_fit, 1.0) - pol_calc(left_fit, 1.0)
-    dm = pol_calc(right_fit, max_y) - pol_calc(left_fit, max_y)
-    if (d1 > MAX or d1 < 60 or dm < 0):
-        left_fit = left_fit_p
-        right_fit = right_fit_p
-        l_n += 1
-        r_n += 1
-    ploty = np.linspace(max_y, 1, num=IMAGE_H)
-    left_fitx = pol_calc(left_fit, ploty)
-    right_fitx = pol_calc(right_fit, ploty)
-    right_fit_p = np.copy(right_fit)
-    left_fit_p = np.copy(left_fit)
-    n_count += 1
-    return img, left_fitx, right_fitx, ploty * 223.0, left_fit, right_fit
 
 
 def init_params(ran):

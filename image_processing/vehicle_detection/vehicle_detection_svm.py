@@ -41,11 +41,11 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
 
-    THRES = 8
+    THRES = 230
     ALPHA = 0.8 # Filter parameter, weight of the previous measurements
 
     track_list = []#[np.array([880, 440, 76, 76])]
-    THRES_LEN = 50
+    THRES_LEN = 10
     Y_MIN = 40
 
     n_count = 0 # Frame counter
@@ -411,10 +411,13 @@ def find_cars_in_subimages(img, ystart, ystop, xstart, xstop, scale, step):
     window = 64
     nblocks_per_window = (window // pix_per_cell) - 1
     cells_per_step = step  # Instead of overlap, define how many cells to step
+
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
     nysteps = (nyblocks - nblocks_per_window) // cells_per_step
     # Compute individual channel HOG features for the entire image
     #hog1 = get_hog_features(ch1, orient, pix_per_cell, cell_per_block, feature_vec=False)
+    outputHeatmap=np.zeros((nysteps+64/16,nxsteps+64/16))
+
     for xb in range(nxsteps):
         for yb in range(nysteps):
             ypos = yb * cells_per_step
@@ -430,13 +433,8 @@ def find_cars_in_subimages(img, ystart, ystop, xstart, xstop, scale, step):
             X = np.vstack((features)).astype(np.float64)
             scaled_X = X_scaler.transform(X)
             test_prediction = svc.predict_proba(scaled_X[0])
-            xbox_left = np.int(xleft * scale) + xstart
-            ytop_draw = np.int(ytop * scale)
-            win_draw = np.int(window * scale)
-            boxes.append(((int(xbox_left), int(ytop_draw + ystart)),
-                          (int(xbox_left + win_draw), int(ytop_draw + win_draw + ystart)),test_prediction[0][1]))
-
-    return boxes
+            outputHeatmap[32/16+yb][32/16+xb]=int(test_prediction[0][1]*255)
+    return outputHeatmap
 
 
 
@@ -445,7 +443,7 @@ def add_heat(heatmap, bbox_list):
     for box in bbox_list:
         # Add += 1 for all pixels inside each bbox
         # Assuming each "box" takes the form ((x1, y1), (x2, y2))
-        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += box[2]
+        heatmap[(box[1][1]-box[0][1])/2, (box[1][0]-box[0][0])/2] += box[2]
     return heatmap  # Return updated heatmap
 
 
@@ -494,18 +492,13 @@ def draw_labeled_bboxes(labels):
         size_m = (size_x + size_y) / 2
         x = size_x + bbox[0][0]
         y = size_y + bbox[0][1]
-        #print x,y,size_x,size_y
-        if size_x>9 and size_y>9:
+        if size_x>THRES_LEN and size_y>THRES_LEN:
             track_list_l.append(np.array([x, y, size_x, size_y]))
             if len(track_list) > 0:
                 track_l = track_list_l[-1]
                 dist = []
                 for track in track_list:
                     dist.append(len_points(track, track_l))
-                min_d = min(dist)
-                if min_d < THRES_LEN:
-                    ind = dist.index(min_d)
-                    track_list_l[-1] = filt(track_list[ind], track_list_l[-1], ALPHA)
     track_list = track_list_l
     boxes = []
     for track in track_list_l:
@@ -513,10 +506,22 @@ def draw_labeled_bboxes(labels):
         boxes.append(track_to_box(track))
     return boxes
 
+def remap(heat,count):
+    scale=1.8
+    if count==0:
+        scale=1
+    x,y=heat.shape
+    newheat=np.zeros((x,y),int)
+    for i in range(x):
+        for j in range(y):
+            newheat[i][j]=int(heat[i][j]/scale)
+    return newheat
 
 def frame_proc(img, lane=False, vis=False):
     '''Returns the detected car boxes '''
     global heat_p, boxes_p, n_count
+
+
     heat = np.zeros_like(img[:, :, 0]).astype(np.float)
     boxes = []
     '''
@@ -525,29 +530,30 @@ def frame_proc(img, lane=False, vis=False):
     boxes += find_cars_in_subimages(img, 200, 375, 650, 900, 2.0, 2)
     boxes += find_cars_in_subimages(img, 200, 375, 0, 500, 1, 2)
     '''
-    boxes += find_cars_in_subimages(img, 150, 375, 0, 1100, 0.5, 3)
-    heat = add_heat(heat, boxes)
-    heat_l = heat_p + heat
+    #print heat.shape
+    #show_img(heat)
+    heat[150:375,0:1100] = cv2.resize(find_cars_in_subimages(img, 150, 375, 0, 1100, 0.5, 2),(1100,225))
+    show_img(heat)
+    heat=cv2.GaussianBlur(heat,(21,21),10)
+    show_img(heat)
+    heat_l=heat+heat_p
     heat_p = [ALPHA * i for i in heat]
-
+    heat_i=remap(heat_l,n_count)
     #might want to update the heatmap positions Kalman Filter style if predictions are possible
-
-    heat_l = apply_threshold(heat_l, THRES)
-    show_img(heat_l)
-    # Apply threshold to help remove false positives
-        # Visualize the heatmap when displaying
-    heatmap = np.clip(heat_l, 0, 255)
+    heat_i = apply_threshold(heat_i, THRES)
+    heatmap = np.clip(heat_i, 0, 255)
+    #show_img(heatmap)
         # Find final boxes from heatmap using label function
     labels = label(heatmap)
+    #print labels
         # print((labels[0]))
     cars_boxes = draw_labeled_bboxes(labels)
     boxes_p = cars_boxes
+    if lane:  # If we was asked to draw the lane line, do it
+        img = laneline.draw_lane(img, False)
     if (not vis):
         # if now visualization parameter is set, return car boxes
         return cars_boxes
-
-    if lane:  # If we was asked to draw the lane line, do it
-        img = laneline.draw_lane(img, False)
     imp = draw_boxes(np.copy(img), cars_boxes, color=(0, 0, 255), thick=6)
     n_count += 1
     return imp
