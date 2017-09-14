@@ -31,7 +31,7 @@ hist_feat = True # Histogram features on or off
 hog_feat = True # HOG features on or off
 
 def init(path_trained_model, path_scalar_defintion, image_width, image_height):
-    global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p
+    global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p_l, heat_p_r
 
     print path_trained_model
     if not (os.path.isfile(path_trained_model) and os.path.isfile(path_scalar_defintion)):
@@ -41,7 +41,7 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     svc=load_trained_model(path_trained_model)
     X_scaler=load_scalar(path_scalar_defintion)
 
-    THRES = 230
+    THRES = 200
     ALPHA = 0.8 # Filter parameter, weight of the previous measurements
 
     track_list = []#[np.array([880, 440, 76, 76])]
@@ -50,7 +50,8 @@ def init(path_trained_model, path_scalar_defintion, image_width, image_height):
 
     n_count = 0 # Frame counter
     boxes_p = [] # Store prev car boxes
-    heat_p = np.zeros((image_width, image_height))  # Store prev heat image
+    heat_p_l = np.zeros((image_width, image_height))  # Store prev heat image
+    heat_p_r = heat_p_l
 
 def reset(image_width,image_height):
 
@@ -59,8 +60,8 @@ def reset(image_width,image_height):
     boxes_p = []  # Store prev car boxes
     heat_p = np.zeros((image_width, image_height))  # Store prev heat image
 
-def find_vehicles(image):
-    return frame_proc(image, lane=False, vis=False)
+def find_vehicles(image,isleft=True):
+    return frame_proc(image, lane=False, vis=False,isleft=isleft)
 
 def show_vehicles(image):
     show_img(frame_proc(image,lane=False,vis=True))
@@ -517,10 +518,9 @@ def remap(heat,count):
             newheat[i][j]=int(heat[i][j]/scale)
     return newheat
 
-def frame_proc(img, lane=False, vis=False):
+def frame_proc(img, lane=False, vis=False, isleft=True):
     '''Returns the detected car boxes '''
-    global heat_p, boxes_p, n_count
-
+    global heat_p_l, heat_p_r, n_count
 
     heat = np.zeros_like(img[:, :, 0]).astype(np.float)
     boxes = []
@@ -533,12 +533,17 @@ def frame_proc(img, lane=False, vis=False):
     #print heat.shape
     #show_img(heat)
     heat[150:375,0:1100] = cv2.resize(find_cars_in_subimages(img, 150, 375, 0, 1100, 0.5, 2),(1100,225))
-    show_img(heat)
+   # show_img(heat)
     heat=cv2.GaussianBlur(heat,(21,21),10)
-    show_img(heat)
-    heat_l=heat+heat_p
-    heat_p = [ALPHA * i for i in heat]
-    heat_i=remap(heat_l,n_count)
+    #show_img(heat)
+    if isleft:
+        heat_l=heat+heat_p_l
+        heat_p_l = [ALPHA * i for i in heat]
+        heat_i = remap(heat_l, n_count)
+    else:
+        heat_l = heat + heat_p_r
+        heat_p_r = [ALPHA * i for i in heat]
+        heat_i = remap(heat_l, n_count-1)
     #might want to update the heatmap positions Kalman Filter style if predictions are possible
     heat_i = apply_threshold(heat_i, THRES)
     heatmap = np.clip(heat_i, 0, 255)
@@ -548,11 +553,11 @@ def frame_proc(img, lane=False, vis=False):
     #print labels
         # print((labels[0]))
     cars_boxes = draw_labeled_bboxes(labels)
-    boxes_p = cars_boxes
     if lane:  # If we was asked to draw the lane line, do it
         img = laneline.draw_lane(img, False)
     if (not vis):
         # if now visualization parameter is set, return car boxes
+        n_count+=1
         return cars_boxes
     imp = draw_boxes(np.copy(img), cars_boxes, color=(0, 0, 255), thick=6)
     n_count += 1
