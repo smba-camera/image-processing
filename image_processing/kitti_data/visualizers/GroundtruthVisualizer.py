@@ -56,6 +56,11 @@ class GroundtruthVisualizer:
         return img_coords
 
     def showVisuals(self, path,date):
+        generator = self.showVisuals_generator(path, date)
+        for _ in generator:
+            a=1#do nothing just consume generator
+
+    def showVisuals_generator(self, path,date):
         fig=plt.figure()
         #plt.get_current_fig_manager().window.state('zoomed')
         i=0
@@ -130,12 +135,12 @@ class GroundtruthVisualizer:
 
                 # show vehicle position in image
                 vehicleCoord = [v.xPos, v.yPos, v.zPos]
-                distance = util.distance(self.camera_model_1.getCameraPosition(), vehicleCoord)
+                distance = util.distance(self.camera_model_1.getCameraPosition(), vehicleCoord) / 2.0
                 image_coords = self.camera_model_velo_camera_0.projectToImage(vehicleCoord)
                 patch = patches.Rectangle(image_coords, 20, 20, color=color)
                 ax1.add_patch(patch)
                 # add distance description
-                ax1.text(image_coords[0], image_coords[1]+40, "{}m".format(distance), color=color)
+                ax1.text(image_coords[0], image_coords[1]+40, "{:10.2f}m".format(distance), color=color)
 
 
             #fig.draw

@@ -9,9 +9,9 @@ class VehicleDetection:
         from vehicle_detection_svm import init
         init(os.path.abspath(os.path.join('image_processing','vehicle_detection','svm_model.pkl')),os.path.abspath(os.path.join('image_processing','vehicle_detection','scalar.pkl')), height, width)
 
-    def find_vehicles(self, img):
+    def find_vehicles(self, img,isleft=True):
         from vehicle_detection_svm import find_vehicles
-        return find_vehicles(img)
+        return find_vehicles(img,isleft=isleft)
     def show_vehicles(self, img):
         from vehicle_detection_svm import show_vehicles
         show_vehicles(img)
