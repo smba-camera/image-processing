@@ -59,7 +59,7 @@ class RangeestimationVisualizer:
                 stereovision_image.ranges.append(None)
                 continue
             position_estimator = PositionEstimationStereoVision(self.camera_model_1,self.camera_model_2)
-            estimated_range = position_estimator.estimate_range_stereo(mean_point(vehicle_pair[0]), mean_point(vehicle_pair[1]))
+            estimated_range = position_estimator.estimate_range_stereo(vehicle_pair[0], vehicle_pair[1])
             stereovision_image.ranges.append(estimated_range)
 
 
@@ -95,6 +95,7 @@ class RangeestimationVisualizer:
             # convert RGB between BGR : cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         sys.stdout.write("{}s\n".format(time.time() - start_time))
 
+        #loaded_images = loaded_images[10:11]
         sys.stdout.write("Searching for Vehicles in {} images...".format(len(loaded_images)))
         start_time = time.time()
         for stereo_vision_image in loaded_images:
@@ -147,7 +148,9 @@ class RangeestimationVisualizer:
             ax2.set_ylim([0,100])
             ax2.set_xlim([-25,25])
             ax2.set_aspect(1)
-            plt.pause(0.00000001)
+
+            plt.pause(0.00001)
+
             fig.clear()
 
             #time.sleep(10)

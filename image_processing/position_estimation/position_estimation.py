@@ -7,7 +7,10 @@ class PositionEstimationStereoVision():
         self.camera_model_two = camera_model_two
 
     def estimate_position(self, pos_img_one, pos_img_two):
-        pos_one=(pos_img_one[0][0] + 0.5 * (pos_img_one[1][0] - pos_img_one[0][0]),pos_img_one[0][1] + 0.5 * (pos_img_one[1][1] - pos_img_one[0][1]))
+        pos_one = (
+            pos_img_one[0][0] + 0.5 * (pos_img_one[1][0] - pos_img_one[0][0]),
+            pos_img_one[0][1] + 0.5 * (pos_img_one[1][1] - pos_img_one[0][1])
+            )
         pos_two = (pos_img_two[0][0] + 0.5 * (pos_img_two[1][0] - pos_img_two[0][0]),pos_img_two[0][1] + 0.5 * (pos_img_two[1][1] - pos_img_two[0][1]))
         vect_one = self.camera_model_one.projectToWorld(pos_one)
         vect_two = self.camera_model_two.projectToWorld(pos_two)
