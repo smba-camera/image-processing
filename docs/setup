@@ -1,0 +1,20 @@
+Setup
+At first all depending libraries must be installed. To make sure it works you should create a virtual environment for the installed dependencies.
+Open a terminal in the folder of the cloned repository.
+
+Then use these commands:
+pip install virtualenv
+virtualenv venv
+source venv/bin/activate (to exit just type deactivate)
+windows: venv\scripts\activate.bat (to exit use the venv\scripts\deactivate.bat)
+python -m pip install -r requirements.txt
+
+All dependencies will then be installed.
+
+For the vehicle detection you will need data from the kitti dataset, see ./image_processing/kitti_data/README
+
+For saving videos in linux you will need ffmpeg:
+sudo add-apt-repository ppa:mc3man/trusty-media
+sudo apt-get update
+sudo apt-get dist-upgrade   # recommended on first use
+sudo apt-get install ffmpeg
