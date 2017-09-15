@@ -14,13 +14,15 @@ from image_processing.position_estimation import PositionEstimationStereoVision
 # detected cars within the kitti images and estimations for distances
 
 class RangeestimationVisualizer:
-    def __init__(self, kitti, drive_num):
+    def __init__(self, kitti, drive_num, start_frame=0, end_frame=0):
         self.camera_model_velo_camera_0 = kitti.getVeloCameraModel()
         self.camera_model_1 = kitti.getCameraModel(0)
         self.camera_model_2 = kitti.getCameraModel(1)
         self.drive_num = drive_num
-        self.vehicledetectioninit=0
+        self.vehicledetectioninit = 0
         self.detector = None
+        self.start_frame = start_frame
+        self.end_frame = end_frame
 
     def getVehicleColor(self, name):
         color='none'
@@ -62,8 +64,12 @@ class RangeestimationVisualizer:
             estimated_range = position_estimator.estimate_range_stereo(vehicle_pair[0], vehicle_pair[1])
             stereovision_image.ranges.append(estimated_range)
 
+    def showVisuals(self, path, date):
+        generator = self.showVisuals_generator(path, date, wait_for_fig_showing=True)
+        for _ in generator:
+            a = 1 # consume generator (normally play animation)
 
-    def showVisuals(self, path,date):
+    def showVisuals_generator(self, path, date, wait_for_fig_showing=False):
         fig=plt.figure()
         #plt.get_current_fig_manager().window.state('zoomed') works only in win
         i=0
@@ -82,6 +88,7 @@ class RangeestimationVisualizer:
         images_camera_1.sort()
         # load all images:
         sys.stdout.write("Loading images...")
+        sys.stdout.flush()
         start_time = time.time()
         loaded_images = []
         for i, (pic0, pic1) in enumerate(zip(images_camera_0, images_camera_1)):
@@ -95,8 +102,16 @@ class RangeestimationVisualizer:
             # convert RGB between BGR : cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         sys.stdout.write("{}s\n".format(time.time() - start_time))
 
-        #loaded_images = loaded_images[10:11]
+        if (self.start_frame and self.end_frame):
+            loaded_images = loaded_images[self.start_frame:self.end_frame]
+        elif (self.start_frame):
+            loaded_images = loaded_images[self.start_frame:]
+        elif (self.end_frame):
+            loaded_images = loaded_images[:self.end_frame]
+
+        # search for vehicles
         sys.stdout.write("Searching for Vehicles in {} images...".format(len(loaded_images)))
+        sys.stdout.flush()
         start_time = time.time()
         for stereo_vision_image in loaded_images:
             self.findVehiclesOnStereoImages(stereo_vision_image)
@@ -149,7 +164,10 @@ class RangeestimationVisualizer:
             ax2.set_xlim([-25,25])
             ax2.set_aspect(1)
 
-            plt.pause(0.00001)
+            if wait_for_fig_showing:
+                plt.pause(0.00001)
+            else:
+                yield fig
 
             fig.clear()
 
