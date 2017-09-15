@@ -43,7 +43,7 @@ def runStereoVisualization():
         carPositions=[]
         for pair in matchedCars:
             if pair[0]!=None and pair[1]!=None:
-                carPositions.append(positionEstimator.estimate3DPosition(pair[0],pair[1]))
+                carPositions.append(positionEstimator.estimate_position_camera(pair[0], pair[1]))
         if not plt.get_fignums():
             # window has been closed
             return

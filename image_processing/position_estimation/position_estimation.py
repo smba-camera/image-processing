@@ -26,7 +26,7 @@ class PositionEstimationStereoVision():
         range_vect = estimated_pos - self.camera_model_one.getCameraPosition().transpose()
         return numpy.linalg.norm(range_vect)
 
-    def estimate3DPosition(self,pos_img_one,pos_img_two):
+    def estimate_position_camera(self, pos_img_one, pos_img_two):
         estimated_pos = self.estimate_position(pos_img_one, pos_img_two)
         range_vect = estimated_pos - self.camera_model_one.getCameraPosition().transpose()
         return range_vect
