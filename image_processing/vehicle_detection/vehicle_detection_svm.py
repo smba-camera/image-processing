@@ -33,7 +33,6 @@ hog_feat = True # HOG features on or off
 def init(path_trained_model, path_scalar_defintion, image_width, image_height):
     global svc, X_scaler, THRES, ALPHA, track_list, THRES_LEN, Y_MIN, n_count, boxes_p, heat_p_l, heat_p_r
 
-    print path_trained_model
     if not (os.path.isfile(path_trained_model) and os.path.isfile(path_scalar_defintion)):
         save_features(path_scalar_defintion)
         train(path_trained_model)
@@ -562,11 +561,3 @@ def frame_proc(img, lane=False, vis=False, isleft=True):
     imp = draw_boxes(np.copy(img), cars_boxes, color=(0, 0, 255), thick=6)
     n_count += 1
     return imp
-
-
-
-
-
-
-
-
