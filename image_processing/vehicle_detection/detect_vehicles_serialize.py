@@ -23,7 +23,9 @@ def detect_vehicles_and_save(path, file_name, min_frame, max_frame):
     for i in images:
         vehicles.append(vehicle_detector.find_vehicles(i))
         now = datetime.now()
-        print("{}/{} time remaining: {}".format(counter,len(images), (now-start_time)/counter*(len(images)-counter)))
+        remaining = (now-start_time)/counter*(len(images)-counter)
+        ready_time = now+remaining
+        print("{}/{} time remaining: {} ready at: {}".format(counter,len(images), remaining, ready_time))
         counter += 1
 
     path = os.path.join('data', 'detected_vehicles')
