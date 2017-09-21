@@ -2,7 +2,7 @@ import sys
 import os
 import cProfile
 import argparse
-import kittty_visualization as kv
+import show_groundtruth_or_stereovision as kv
 
 sys.path.append(os.path.abspath(os.path.join(".")))
 
