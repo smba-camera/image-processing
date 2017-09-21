@@ -11,7 +11,8 @@ from Vehicle_detection import VehicleDetection
 def detect_vehicles_and_save(path, file_name, min_frame, max_frame):
     start_time = datetime.now()
     images = []
-    for i in glob.glob(os.path.join(path, '*.png')):
+
+    for i in sorted(glob.glob(os.path.join(path, '*.png'))):
         images.append(cv2.imread(i))
     vehicle_detector = VehicleDetection(images[0])
     vehicles = []
