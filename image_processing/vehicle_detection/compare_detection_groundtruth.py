@@ -20,7 +20,7 @@ class GroundtruthComparison():
     def __init__(self):
         self.matchedCars=[]
 
-    def runComparison(self,date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha):
+    def runComparison(self,date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha, distance_steps=10):
         path = os.path.abspath(os.path.join('data', 'kitti'))
         date = '2011_09_26'
         kittiDataLoader=kitti(path,date)
@@ -53,7 +53,8 @@ class GroundtruthComparison():
             detectedCarCount+=len(carPositions)
             #cars.sort(key=lambda tup: np.sqrt(tup[0] * tup[0] + tup[1] * tup[1]))
             self.matchedCars.append(util.match_2d_coordinate_partners(cars,carPositions,alpha))
-        return self.matchedCars
+
+        self.calculate_detection_error_rate(distance_steps)
 
     def reset(self):
         self.matchedCars=[]
@@ -61,40 +62,54 @@ class GroundtruthComparison():
     def get_matched_cars(self):
         return self.matchedCars
 
-    def get_detection_error_rate(self, distance_steps=10):
+    def calculate_detection_error_rate(self, distance_steps):
+        car_position = [0,0]
+        index_real = 0
+        index_detected = 1
 
         def normalize_distance(distance):
             return (int(distance / distance_steps) + 1) * distance_steps
 
-        successfully_matched = [x for x in self.matchedCars if x[0] and x[1]]
-
+        matches_without_false = [x for x in self.matchedCars[0] if x[index_real]]
+        matches_false_positives = [x for x in self.matchedCars[0] if x[index_detected] and not x[index_real]]
+        matches_per_distance = {}
+        for match in matches_without_false:
+            #print("real pos: {}".format(match[1]))
+            distance_from_car = normalize_distance(util.distance(car_position, match[index_real]))
+            if not distance_from_car in matches_per_distance:
+                matches_per_distance[distance_from_car] = []
+            matches_per_distance[distance_from_car].append(match)
 
         self.error_rate_per_distance = {}
-        self.x_variance_per_distance = {}
-        self.y_variance_per_distance = {}
+        self.x_mean_deviation_per_distance = {}
+        self.y_mean_deviation_per_distance = {}
+        x_deviation_aggregated = 0
+        y_deviation_aggregated = 0
+        num_found_cars = 0
+        for distance in matches_per_distance:
+            matches = matches_per_distance[distance]
+            num_found_cars_per_distance = 0
+            x_deviation_per_distance_aggregated = 0
+            y_deviation_per_distance_aggregated = 0
+            for match in matches:
+                if not match[index_detected]:
+                    # was not found
+                    continue
+                num_found_cars += 1
+                num_found_cars_per_distance += 1
+                distance_from_car = util.distance(car_position, match[index_real])
+                x_deviation = abs(match[index_detected][0]-match[index_real][0]) / distance_from_car
+                y_deviation = abs(match[index_detected][1]-match[index_real][1]) / distance_from_car
+                x_deviation_per_distance_aggregated += x_deviation
+                y_deviation_per_distance_aggregated += y_deviation
+                x_deviation_aggregated += x_deviation
+                y_deviation_aggregated += y_deviation
+            self.error_rate_per_distance[distance] = num_found_cars_per_distance / len(matches)
 
-        car_position = [0,0]
-        num_real_cars = 0
-        num_successful_found = 0
-        num_false_positives = 0
-        for match in self.matchedCars:
-            if not match[0]:
-                distance_from_car = util.distance(car_position, match[1])
-
-                num_real_cars += 1
-            if not match[1]:
-                num_false_positives += 1
-            if not match[0] or not match[1]:
-                continue
-            num_successful_found += 1
-            num_real_cars += 1
-            distance_from_car = normalize_distance(util.distance(car_position, match[1]))
-            distance_from_real = normalize_distance(util.distance(match[0], match[1]))
-
-        self.error_rate = 5
-        self.x_variance = 4
-        self.y_variance = 4
-        print self.matchedCars
+        self.error_rate = num_found_cars / float(len(matches_without_false))
+        self.x_mean_deviation = 4
+        self.y_mean_deviation = 4
+        self.num_false_positives = len(matches_false_positives)
 
     def get_x_error_rate(self):
 
