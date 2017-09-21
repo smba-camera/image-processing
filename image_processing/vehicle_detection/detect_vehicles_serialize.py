@@ -8,7 +8,7 @@ from datetime import datetime
 from Vehicle_detection import VehicleDetection
 #import image_processing.vehicle_detection.VehicleDetection as VehicleDetection
 
-def detect_vehicles_and_save(path, file_name):
+def detect_vehicles_and_save(path, file_name, min_frame, max_frame):
     start_time = datetime.now()
     images = []
     for i in glob.glob(os.path.join(path, '*.png')):
@@ -17,7 +17,7 @@ def detect_vehicles_and_save(path, file_name):
     vehicles = []
 
     counter = 1
-    #images = images[:10]
+    images = images[min_frame:max_frame] if max_frame else images[min_frame:]
     print("amount of images: {}, takes about {}m".format(len(images), len(images)/0.75))
     for i in images:
         vehicles.append(vehicle_detector.find_vehicles(i))
@@ -42,7 +42,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Renders Kitti data with marked positions of objects')
     parser.add_argument('images_path')
     parser.add_argument('file_name')
+    parser.add_argument('-min_frame', type=int, default=0)
+    parser.add_argument('-max_frame', type=int, default=0)
+
     #parser.add_argument('path')
     args = parser.parse_args()
-    detect_vehicles_and_save(args.images_path, args.file_name)
+    detect_vehicles_and_save(args.images_path, args.file_name,args.min_frame, args.max_frame)
     #print(load_detected_vehicles(args.path))
