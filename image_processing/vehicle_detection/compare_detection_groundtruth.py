@@ -61,10 +61,43 @@ class GroundtruthComparison():
     def get_matched_cars(self):
         return self.matchedCars
 
-    def get_detection_error_rate(self):
+    def get_detection_error_rate(self, distance_steps=10):
+
+        def normalize_distance(distance):
+            return (int(distance / distance_steps) + 1) * distance_steps
+
+        successfully_matched = [x for x in self.matchedCars if x[0] and x[1]]
+
+
+        self.error_rate_per_distance = {}
+        self.x_variance_per_distance = {}
+        self.y_variance_per_distance = {}
+
+        car_position = [0,0]
+        num_real_cars = 0
+        num_successful_found = 0
+        num_false_positives = 0
+        for match in self.matchedCars:
+            if not match[0]:
+                distance_from_car = util.distance(car_position, match[1])
+
+                num_real_cars += 1
+            if not match[1]:
+                num_false_positives += 1
+            if not match[0] or not match[1]:
+                continue
+            num_successful_found += 1
+            num_real_cars += 1
+            distance_from_car = normalize_distance(util.distance(car_position, match[1]))
+            distance_from_real = normalize_distance(util.distance(match[0], match[1]))
+
+        self.error_rate = 5
+        self.x_variance = 4
+        self.y_variance = 4
         print self.matchedCars
 
     def get_x_error_rate(self):
+
         pass
 
 
