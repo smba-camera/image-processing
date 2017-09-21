@@ -2,6 +2,7 @@ import os
 import glob,sys
 import cv2
 import numpy as np
+import itertools
 
 
 # make modules accessible for the script
@@ -70,8 +71,9 @@ class GroundtruthComparison():
         def normalize_distance(distance):
             return (int(distance / distance_steps) + 1) * distance_steps
 
-        matches_without_false = [x for x in self.matchedCars[0] if x[index_real]]
-        matches_false_positives = [x for x in self.matchedCars[0] if x[index_detected] and not x[index_real]]
+        all_matched_cars = itertools.chain.from_iterable(self.matchedCars)
+        matches_without_false = [x for x in all_matched_cars if x[index_real]]
+        matches_false_positives = [x for x in all_matched_cars if x[index_detected] and not x[index_real]]
         matches_per_distance = {}
         for match in matches_without_false:
             #print("real pos: {}".format(match[1]))
@@ -104,7 +106,7 @@ class GroundtruthComparison():
                 y_deviation_per_distance_aggregated += y_deviation
                 x_deviation_aggregated += x_deviation
                 y_deviation_aggregated += y_deviation
-            self.error_rate_per_distance[distance] = num_found_cars_per_distance / len(matches)
+            self.error_rate_per_distance[distance] = num_found_cars_per_distance / float(len(matches))
 
         self.error_rate = num_found_cars / float(len(matches_without_false))
         self.x_mean_deviation = 4
