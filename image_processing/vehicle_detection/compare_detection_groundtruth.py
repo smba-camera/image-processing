@@ -100,17 +100,19 @@ class GroundtruthComparison():
                 num_found_cars += 1
                 num_found_cars_per_distance += 1
                 distance_from_car = util.distance(car_position, match[index_real])
-                x_deviation = abs(match[index_detected][0]-match[index_real][0]) / distance_from_car
-                y_deviation = abs(match[index_detected][1]-match[index_real][1]) / distance_from_car
+                x_deviation = abs(match[index_detected][0]-match[index_real][0]) / float(distance_from_car)
+                y_deviation = abs(match[index_detected][1]-match[index_real][1]) / float(distance_from_car)
                 x_deviation_per_distance_aggregated += x_deviation
                 y_deviation_per_distance_aggregated += y_deviation
                 x_deviation_aggregated += x_deviation
                 y_deviation_aggregated += y_deviation
             self.error_rate_per_distance[distance] = num_found_cars_per_distance / float(len(matches))
-
+            if (num_found_cars_per_distance):
+                self.x_mean_deviation_per_distance[distance] = x_deviation_per_distance_aggregated / float(num_found_cars_per_distance)
+                self.y_mean_deviation_per_distance[distance] = y_deviation_per_distance_aggregated / float(num_found_cars_per_distance)
         self.error_rate = num_found_cars / float(len(matches_without_false))
-        self.x_mean_deviation = 4
-        self.y_mean_deviation = 4
+        self.x_mean_deviation = x_deviation_aggregated / float(num_found_cars)
+        self.y_mean_deviation = y_deviation_aggregated / float(num_found_cars)
         self.num_false_positives = len(matches_false_positives)
 
     def get_x_error_rate(self):
