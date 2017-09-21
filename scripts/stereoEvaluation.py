@@ -8,6 +8,7 @@ import matplotlib.patches as patches
 # make modules accessible for the script
 sys.path.append(os.path.abspath(os.path.join(".")))
 
+import image_processing.vehicle_detection.detect_vehicles_serialize as serialize
 import image_processing.vehicle_detection.Vehicle_detection as vd
 import image_processing.vehicle_detection.stereo_vision_vehicle_matcher as vm
 import image_processing.position_estimation.position_estimation as pe
@@ -23,34 +24,48 @@ def runStereoEvaluation():
     vehiclePositions=vp.VehiclePositions(path,date,56)
     leftCameraModel=kittiDataLoader.getCameraModel(3)
     rightCameraModel=kittiDataLoader.getCameraModel(2)
-    path2 = os.path.abspath(os.path.join('data', 'images2'))
-    path3 =os.path.abspath(os.path.join('data','images3'))
-    sampleimg=cv2.imread(os.path.join(path2,'0000000000.png'))
-    detector=vd.VehicleDetection(sampleimg)
-    images2=glob.glob(os.path.join(path2,'*.png'))
-    images2.sort()
-    images3 = glob.glob(os.path.join(path3, '*.png'))
-    images3.sort()
     fig=plt.figure()
     positionEstimator= pe.PositionEstimationStereoVision(leftCameraModel,rightCameraModel)
-    framecount=80
-    for image2,image3 in zip(images2[80:],images3[80:]):
-        img2=cv2.imread(image2)
-        img3=cv2.imread(image3)
-        carsLeft = detector.find_vehicles(img3)
-        carsRight= detector.find_vehicles(img2,False)
-        matchedCars = vm.match_vehicles_stereo(carsLeft,carsRight)
+    datapath_left='0056_03_0-10_t975'
+    datapath_right = '0056_02_0-10_t975'
+    startFrame=0
+    maxFrame=10
+    detectedCarCount=0
+    realCarCount=0
+    ax1 = fig.add_subplot(211)
+    carsLeft = serialize.load_detected_vehicles(datapath_left)
+    carsRight = serialize.load_detected_vehicles(datapath_right)
+    for framecount in range(startFrame,maxFrame):
+        matchedCars = vm.match_vehicles_stereo(carsLeft[framecount],carsRight[framecount])
         carPositions=[]
         for pair in matchedCars:
             if pair[0]!=None and pair[1]!=None:
-                carPositions.append(positionEstimator.estimate3DPosition(pair[0],pair[1]))
+                list=positionEstimator.estimate_position(pair[0], pair[1])
+                temp=[-list[2],list[0]]
+                carPositions.append(temp)
+
+        #carPositions.sort(key=lambda tup:np.sqrt(tup[0]*tup[0]+tup[1]*tup[1])
         vehicles=vehiclePositions.getVehiclePosition(framecount)
-        framecount+=1
-        print carPositions
-        print len(vehicles)
+        cars=[]
         for x in range(len(vehicles)):
             if vehicles[x].type=='Car':
-                print vehicles[x].xPos,vehicles[x].yPos,vehicles[x].zPos
+                cars.append((vehicles[x].xPos,vehicles[x].yPos))
+        realCarCount+=len(cars)
+        detectedCarCount+=len(carPositions)
+        #cars.sort(key=lambda tup: np.sqrt(tup[0] * tup[0] + tup[1] * tup[1]))
+
+
+        for i in range(len(carPositions)):
+            ax1.add_patch(patches.Circle((cars[i][1], cars[i][0]), 0.05, color='Green'))
+            print cars[i]
+        for j in range(i+1,len(cars)):
+            ax1.add_patch(patches.Circle((cars[j][1], cars[j][0]), 0.05, color='Red'))
+            print cars[j]
+
+    ax1.set_ylim([5, 50])
+    ax1.set_xlim([-15, 15])
+    ax1.set_aspect(1)
+    plt.pause(10)
 
 
 if __name__ == "__main__":
