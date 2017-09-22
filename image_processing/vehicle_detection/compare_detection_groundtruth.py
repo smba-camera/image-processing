@@ -42,12 +42,13 @@ class GroundtruthComparison():
             carPositions=[]
             for pair in matchedStereoCars:
                 if pair[0]!=None and pair[1]!=None:
-                    list=positionEstimator.estimate_position(pair[0], pair[1])
-                    temp=[-list[2],list[0]]
+                    x,y,z=positionEstimator.estimate_position(pair[0], pair[1])
+                    temp=[-z,x] #[[list[2],-list[0]]]   #
                     carPositions.append(temp)
 
             #carPositions.sort(key=lambda tup:np.sqrt(tup[0]*tup[0]+tup[1]*tup[1])
             vehicles=vehiclePositions.getVehiclePosition(framecount)
+
             cars=[]
             for x in range(len(vehicles)):
                 if vehicles[x].type in ('Car'):#,'Van','Truck'):
