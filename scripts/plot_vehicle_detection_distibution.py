@@ -70,11 +70,12 @@ def plot_recognitionrate_distance():
 
     plt.xlabel('x-direction in m')
     plt.ylabel('y-direction in m')
-    plt.title('Top View of (non-)detected cars in 2800 frames')
+    plt.title('Top View of (non-)detected cars in 3000 frames')
     #plt.axis([0,maxrange,0,1])
     handles, labels = plt.gca().get_legend_handles_labels()
     # reverse the order
     plt.legend(handles[::-1], labels[::-1],bbox_to_anchor=(1.04,1), loc="upper left", facecolor=(0.8,0.8,0.8,0.2))
+    fig.savefig(os.path.join('data','plots','plot_vehicle_detection_distribution.png'))
     plt.show()
 
 if __name__ == "__main__":
