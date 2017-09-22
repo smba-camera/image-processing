@@ -12,16 +12,17 @@ def detect_vehicles_and_save(path, file_name, min_frame, max_frame):
     start_time = datetime.now()
     images = []
 
-    for i in sorted(glob.glob(os.path.join(path, '*.png'))):
-        images.append(cv2.imread(i))
-    vehicle_detector = VehicleDetection(images[0])
+    images = sorted(glob.glob(os.path.join(path, '*.png')))
+
+    vehicle_detector = VehicleDetection(cv2.imread(images[0]))
     vehicles = []
 
     counter = 1
     images = images[min_frame:max_frame] if max_frame else images[min_frame:]
     print("amount of images: {}, takes about {}m".format(len(images), len(images)/0.75))
-    for i in images:
-        vehicles.append(vehicle_detector.find_vehicles(i))
+    for i_path in images:
+        img = cv2.imread(i_path)
+        vehicles.append(vehicle_detector.find_vehicles(img))
         now = datetime.now()
         remaining = (now-start_time)/counter*(len(images)-counter)
         ready_time = now+remaining
