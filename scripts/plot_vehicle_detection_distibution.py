@@ -66,10 +66,10 @@ def plot_recognitionrate_distance():
     plt.plot(negate(y_coords_falsePos), x_coords_falsePos, 'y.', label='Wrong detections', markersize=5, color=(1,1,0,0.4))
     plt.plot([0,0], [-1,1], 'ks', label='Position of car',  markersize=13, color=(0,0,0))
     plt.axis('scaled')
-    plt.axis([-30,10,-5,50])
+    plt.axis([-40,40,-10,75])
 
-    plt.xlabel('x-direction in m')
-    plt.ylabel('y-direction in m')
+    plt.xlabel('y-direction [m]')
+    plt.ylabel('x-direction [m]')
     plt.title('Top View of (non-)detected cars in 3000 frames')
     #plt.axis([0,maxrange,0,1])
     handles, labels = plt.gca().get_legend_handles_labels()
