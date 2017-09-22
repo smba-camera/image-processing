@@ -10,7 +10,6 @@ import matplotlib.patches as patches
 
 import image_processing.vehicle_detection.compare_detection_groundtruth as compare
 
-
 def plot_threshold_influence():
     date = '2011_09_26'
     drives = ['0056']
