@@ -16,12 +16,12 @@ def plot_recognitionrate_distance():
     thresholds=['200']
 
     startFrame = 0
-    maxFrame = 10
+    maxFrame = 100
     alpha=50
     stepsize=10
     maxrange=80
     fig = plt.figure()
-    distances = np.arange(0, maxrange + 1, stepsize)
+    distances = np.linspace(0, maxrange, (maxrange/stepsize)+1,dtype=int)
     values_per_threshold=[]
     for threshold in thresholds:
         datapath_left = '0056_03_0-100_t'+threshold
@@ -30,9 +30,15 @@ def plot_recognitionrate_distance():
         matcher.runComparison(date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha,stepsize)
         values=[]
         for distance in distances:
+            if not distance in matcher.error_rate_per_distance:
+                values.append(-1)
+                continue
             values.append(matcher.error_rate_per_distance[distance])
         values_per_threshold.append(values)
+
     for i in range(len(thresholds)):
+        print len(distances)
+        print len(values_per_threshold[i])
         plt.plot(distances,values_per_threshold[i],label=thresholds[i])
     plt.axis([0,maxrange,0,1])
     plt.show()
