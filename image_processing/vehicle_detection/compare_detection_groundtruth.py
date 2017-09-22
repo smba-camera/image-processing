@@ -21,7 +21,7 @@ class GroundtruthComparison():
     def __init__(self):
         self.matchedCars=[]
 
-    def runComparison(self,date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha, distance_steps=10):
+    def runComparison(self,date,drive,datapath_left,datapath_right,alpha, distance_steps=10,startFrame=0,maxFrame=0):
         path = os.path.abspath(os.path.join('data', 'kitti'))
         date = '2011_09_26'
         kittiDataLoader=kitti(path,date)
@@ -35,6 +35,7 @@ class GroundtruthComparison():
         realCarCount=0
         carsLeft = serialize.load_detected_vehicles(datapath_left)
         carsRight = serialize.load_detected_vehicles(datapath_right)
+        maxFrame = maxFrame if maxFrame else len(carsLeft)
         for framecount in range(startFrame,maxFrame):
             matchedStereoCars = vm.match_vehicles_stereo(carsLeft[framecount],carsRight[framecount])
             carPositions=[]
