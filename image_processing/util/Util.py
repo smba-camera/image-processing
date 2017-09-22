@@ -15,10 +15,10 @@ def norm(vect):
 def match_2d_coordinate_partners(l1, l2, alpha=40):
     l2_c = list(l2)
     def find_partner(c):
-        possible_partners = [x for x in l2_c if distance(x,c) < 40]
+        possible_partners = [x for x in l2_c if distance(x,c) < alpha]
         if not possible_partners:
             return None
-        p = sorted(possible_partners)[0]
+        p = sorted(possible_partners, key=lambda x: distance(x,c))[0]
         l2_c.remove(p)
         return p
     result = []
