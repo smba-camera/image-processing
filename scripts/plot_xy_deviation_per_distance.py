@@ -1,6 +1,7 @@
 import os
 import glob,sys
 import cv2
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -10,7 +11,7 @@ import matplotlib.patches as patches
 import image_processing.vehicle_detection.compare_detection_groundtruth as compare
 
 
-def plot_xy_deviation_per_distance():
+def plot_xy_deviation_per_distance(ploting_option):
     date = '2011_09_26'
     drives = ['0001', '0005', '0009', '0015', '0019', '0022', '0028', '0056']
     startFrame = 0
@@ -28,16 +29,29 @@ def plot_xy_deviation_per_distance():
         datapath_right = drive + '_02_t200'
         matcher.runComparison(date, drive, datapath_left, datapath_right, alpha, stepsize)
     i=0
-    for distance in distances:
-        if distance in matcher.x_mean_deviation_per_distance:
-            xValues[i]=(matcher.x_mean_deviation_per_distance[distance])
-        else:
-            xValues[i] = None
-        if distance in matcher.y_mean_deviation_per_distance:
-            yValues[i]=(matcher.y_mean_deviation_per_distance[distance])
-        else:
-            yValues[i] = None
-        i+=1
+    if ploting_option:
+        for distance in distances:
+            if distance in matcher.x_mean_deviation_per_distance:
+                xValues[i]=(matcher.x_mean_deviation_per_distance[distance])
+            else:
+                xValues[i] = None
+            if distance in matcher.y_mean_deviation_per_distance:
+                yValues[i]=(matcher.y_mean_deviation_per_distance[distance])
+            else:
+                yValues[i] = None
+            i+=1
+    else:
+        for distance in distances:
+            if distance in matcher.x_absolute_deviation_per_distance:
+                xValues[i] = (matcher.x_absolute_deviation_per_distance[distance])
+            else:
+                xValues[i] = None
+            if distance in matcher.y_absolute_deviation_per_distance:
+                yValues[i] = (matcher.y_absolute_deviation_per_distance[distance])
+            else:
+                yValues[i] = None
+            i += 1
+
 
     distances = [x - 5 for x in distances]
     plt.plot(distances, xValues, 'bo', distances, xValues, 'k',label='x-direction')
@@ -55,4 +69,7 @@ def plot_xy_deviation_per_distance():
 
 
 if __name__ == "__main__":
-    plot_xy_deviation_per_distance()
+    parser = argparse.ArgumentParser(description='Ploting option 0: absolute error graph; Ploting option 1: relative error graph')
+    parser.add_argument('ploting_option', type=int)
+    args = parser.parse_args()
+    plot_xy_deviation_per_distance(args.ploting_option)
