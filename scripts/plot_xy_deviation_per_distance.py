@@ -46,6 +46,7 @@ def plot_xy_deviation_per_distance():
     plt.ylabel('Average deviation from correct position per meter distance [m]')
     plt.xlabel('Distance from detected cars [m]')
     plt.title('Average deviation of calculated distance to real distance\n as measured on 3000 Kitti image pairs')
+    fig.savefig(os.path.join('data', 'plots', 'plot_xy_deviation_per_distance.png'))
     plt.show()
     #fig.savefig('data/plots/Stereo_Recognition_Rate_per_Distance.png')
 

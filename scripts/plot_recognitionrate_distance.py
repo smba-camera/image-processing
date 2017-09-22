@@ -43,6 +43,7 @@ def plot_recognitionrate_distance():
     plt.ylabel('Stereo detection probability')
     plt.xlabel('Distance from detected cars [m]')
     plt.title('Stereo recognition rate per distance to detected cars\n as measured on 3000 Kitti image pairs')
+    fig.savefig(os.path.join('data', 'plots', 'plot_recognitionrate_distance.png'))
     plt.show()
     #fig.savefig('data/plots/Stereo_Recognition_Rate_per_Distance.png')
 
