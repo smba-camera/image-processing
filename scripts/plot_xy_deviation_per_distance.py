@@ -52,11 +52,10 @@ def plot_xy_deviation_per_distance(ploting_option):
                 yValues[i] = None
             i += 1
 
-
     distances = [x - 5 for x in distances]
     plt.plot(distances, xValues, 'bo', distances, xValues, 'k',label='x-direction')
     plt.plot(distances, yValues, 'bo', distances, yValues, 'k',label='y-direction')
-    plt.axis([0, maxrange, 0, 3])
+    plt.axis([0, maxrange, 0, max(np.max(xValues),np.max(yValues))])
     plt.ylabel('Average deviation from correct position per meter distance [m]')
     plt.xlabel('Distance from detected cars [m]')
     plt.title('Average deviation of calculated distance to real distance\n as measured on 3000 Kitti image pairs')
