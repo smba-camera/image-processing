@@ -75,9 +75,10 @@ class VehicleDetectionAnalyzer():
         def normalize_distance(distance):
             return (int(distance / distance_steps) + 1) * distance_steps
 
-        all_matched_cars = itertools.chain.from_iterable(self.matchedCars)
+        all_matched_cars = list(itertools.chain.from_iterable(self.matchedCars))
         matches_without_false = [x for x in all_matched_cars if x[index_real]]
         matches_false_positives = [x for x in all_matched_cars if x[index_detected] and not x[index_real]]
+
         matches_per_distance = {}
         for match in matches_without_false:
             #print("real pos: {}".format(match[1]))
@@ -136,7 +137,6 @@ class VehicleDetectionAnalyzer():
             self.x_mean_deviation=None
             self.y_mean_deviation=None
         self.num_false_positives = len(matches_false_positives)
-
 
     def get_x_error_rate(self):
 
