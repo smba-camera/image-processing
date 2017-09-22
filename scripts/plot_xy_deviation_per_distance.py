@@ -59,8 +59,14 @@ def plot_xy_deviation_per_distance(ploting_option):
     plt.axis([0, maxrange, 0, max(np.max(xValues),np.max(yValues))+1])
     plt.ylabel('Average deviation from correct position per meter distance [m]')
     plt.xlabel('Distance from detected cars [m]')
-    plt.title('Average deviation of calculated distance to real distance\n as measured on 3000 Kitti image pairs')
-    fig.savefig(os.path.join('data', 'plots', 'plot_xy_deviation_per_distance.png'))
+    if ploting_option:
+        plt.title('Deviation of calculated vehicle positions relative to distance\n as measured on 3000 Kitti image pairs')
+        plt.ylabel('Deviation from correct position / distance to car [m]')
+        fig.savefig(os.path.join('data', 'plots', 'plot_xy_relative_deviation_per_distance.png'))
+    else:
+        plt.title('Absolute deviation of calculated vehicle positions\n as measured on 3000 Kitti image pairs')
+        plt.ylabel('Absolute deviation from correct position [m]')
+        fig.savefig(os.path.join('data', 'plots', 'plot_xy_absolute_deviation_per_distance.png'))
     plt.show()
     #fig.savefig('data/plots/Stereo_Recognition_Rate_per_Distance.png')
 
