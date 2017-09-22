@@ -23,25 +23,21 @@ def plot_recognitionrate_distance():
     hitmap = [0]*((maxrange/stepsize)+1)
     matcher = compare.GroundtruthComparison()
     fig = plt.figure()
-    distances = np.linspace(0, maxrange, (maxrange/stepsize)+1,dtype=int)
+    distances = np.linspace(1, maxrange, (maxrange/stepsize)+1,dtype=int)
     for drive in drives:
         datapath_left = drive+'_03_t200'
         datapath_right = drive+'_02_t200'
         matcher.runComparison(date,drive,datapath_left,datapath_right,alpha,stepsize)
-        i=0
-        for distance in distances:
-            if not distance in matcher.error_rate_per_distance:
-                continue
-            values[i]+=(matcher.error_rate_per_distance[distance])
-            hitmap[i]+=1
+    i=0
+    for distance in distances:
+        if not distance in matcher.error_rate_per_distance:
+            values[i] = None
             i+=1
+            continue
+        values[i]=(matcher.error_rate_per_distance[distance])
+        i+=1
 
-    for i in range((maxrange/stepsize)+1):
-        if hitmap[i]==0:
-            values[i]=None
-        else:
-            values[i]=values[i]/hitmap[i]
-    distances = [x+5 for x in distances]
+    distances = [x-5 for x in distances]
     plt.plot(distances,values,'bo',distances,values,'k')
     plt.axis([0,maxrange,0,1])
     plt.ylabel('Stereo detection probability')

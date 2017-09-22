@@ -19,38 +19,27 @@ def plot_xy_deviation_per_distance():
     stepsize = 10
     maxrange = 80
     xValues = [0] * ((maxrange / stepsize) + 1)
-    xHitmap = [0] * ((maxrange / stepsize) + 1)
     yValues = [0] * ((maxrange / stepsize) + 1)
-    yHitmap = [0] * ((maxrange / stepsize) + 1)
     matcher = compare.GroundtruthComparison()
     fig = plt.figure()
-    distances = np.linspace(stepsize, maxrange, (maxrange / stepsize) + 1, dtype=int)
+    distances = np.linspace(1, maxrange, (maxrange / stepsize) + 1, dtype=int)
     for drive in drives:
         datapath_left = drive + '_03_t200'
         datapath_right = drive + '_02_t200'
         matcher.runComparison(date, drive, datapath_left, datapath_right, alpha, stepsize)
-        i=0
-        for distance in distances:
-            if distance in matcher.x_mean_deviation_per_distance:
-                xValues[i]+=(matcher.x_mean_deviation_per_distance[distance])
-                xHitmap[i]+=1
-            if distance in matcher.y_mean_deviation_per_distance:
-                yValues[i]+=(matcher.y_mean_deviation_per_distance[distance])
-                yHitmap[i]+=1
-            i+=1
-
-    print xHitmap,yHitmap
-    for i in range((maxrange / stepsize) + 1):
-        if xHitmap[i] == 0:
+    i=0
+    for distance in distances:
+        if distance in matcher.x_mean_deviation_per_distance:
+            xValues[i]=(matcher.x_mean_deviation_per_distance[distance])
+        else:
             xValues[i] = None
+        if distance in matcher.y_mean_deviation_per_distance:
+            yValues[i]=(matcher.y_mean_deviation_per_distance[distance])
         else:
-            xValues[i] = xValues[i] / xHitmap[i]
-        if yHitmap[i] == 0:
             yValues[i] = None
-        else:
-            yValues[i] = yValues[i] / yHitmap[i]
+        i+=1
 
-    distances = [x + 5 for x in distances]
+    distances = [x - 5 for x in distances]
     plt.plot(distances, xValues, 'bo', distances, xValues, 'k',label='x-direction')
     plt.plot(distances, yValues, 'bo', distances, yValues, 'k',label='y-direction')
     plt.axis([0, maxrange, 0, 3])
