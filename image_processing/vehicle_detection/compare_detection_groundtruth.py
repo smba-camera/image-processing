@@ -49,7 +49,7 @@ class GroundtruthComparison():
             vehicles=vehiclePositions.getVehiclePosition(framecount)
             cars=[]
             for x in range(len(vehicles)):
-                if vehicles[x].type=='Car':
+                if vehicles[x].type in ('Car'):#,'Van','Truck'):
                     cars.append((vehicles[x].xPos,vehicles[x].yPos))
             realCarCount+=len(cars)
             detectedCarCount+=len(carPositions)

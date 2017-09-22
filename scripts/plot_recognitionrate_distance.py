@@ -12,36 +12,43 @@ import image_processing.vehicle_detection.compare_detection_groundtruth as compa
 
 def plot_recognitionrate_distance():
     date = '2011_09_26'
-    drive=56
-    thresholds=['200']
+    drives=['0001','0005','0009','0015','0019','0022','0028','0056']
 
     startFrame = 0
     maxFrame = 100
-    alpha=50
+    alpha=10
     stepsize=10
     maxrange=80
+    values = [0]*((maxrange/stepsize)+1)
+    hitmap = [0]*((maxrange/stepsize)+1)
+    matcher = compare.GroundtruthComparison()
     fig = plt.figure()
     distances = np.linspace(0, maxrange, (maxrange/stepsize)+1,dtype=int)
-    values_per_threshold=[]
-    for threshold in thresholds:
-        datapath_left = '0056_03_0-100_t'+threshold
-        datapath_right = '0056_02_0-100_t'+threshold
-        matcher=compare.GroundtruthComparison()
-        matcher.runComparison(date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha,stepsize)
-        values=[]
+    for drive in drives:
+        datapath_left = drive+'_03_t200'
+        datapath_right = drive+'_02_t200'
+        matcher.runComparison(date,drive,datapath_left,datapath_right,alpha,stepsize)
+        i=0
         for distance in distances:
             if not distance in matcher.error_rate_per_distance:
-                values.append(-1)
                 continue
-            values.append(matcher.error_rate_per_distance[distance])
-        values_per_threshold.append(values)
+            values[i]+=(matcher.error_rate_per_distance[distance])
+            hitmap[i]+=1
+            i+=1
 
-    for i in range(len(thresholds)):
-        print len(distances)
-        print len(values_per_threshold[i])
-        plt.plot(distances,values_per_threshold[i],label=thresholds[i])
+    for i in range((maxrange/stepsize)+1):
+        if hitmap[i]==0:
+            values[i]=None
+        else:
+            values[i]=values[i]/hitmap[i]
+    distances = [x+5 for x in distances]
+    plt.plot(distances,values,'bo',distances,values,'k')
     plt.axis([0,maxrange,0,1])
+    plt.ylabel('Stereo detection probability')
+    plt.xlabel('Distance from detected cars [m]')
+    plt.title('Stereo recognition rate per distance to detected cars\n as measured on 3000 Kitti image pairs')
     plt.show()
+    #fig.savefig('data/plots/Stereo_Recognition_Rate_per_Distance.png')
 
 
 
