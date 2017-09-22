@@ -21,7 +21,7 @@ def plot_xy_deviation_per_distance(ploting_option):
     maxrange = 80
     xValues = [0] * ((maxrange / stepsize) + 1)
     yValues = [0] * ((maxrange / stepsize) + 1)
-    matcher = compare.GroundtruthComparison()
+    matcher = compare.VehicleDetectionAnalyization()
     fig = plt.figure()
     distances = np.linspace(1, maxrange, (maxrange / stepsize) + 1, dtype=int)
     for drive in drives:

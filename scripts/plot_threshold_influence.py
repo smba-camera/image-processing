@@ -20,7 +20,7 @@ def plot_threshold_influence():
     alpha = 10
     falsePositives = [0] * len(thresholds)
     falseNegatives = [0] * len(thresholds)
-    matcher = compare.GroundtruthComparison()
+    matcher = compare.VehicleDetectionAnalyization()
     fig = plt.figure()
     for drive in drives:
 

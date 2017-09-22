@@ -24,7 +24,7 @@ def plot_recognitionrate_distance():
     distances = np.arange(0, maxrange + 1, stepsize)
     values_per_threshold=[]
 
-    matcher = compare.GroundtruthComparison()
+    matcher = compare.VehicleDetectionAnalyization()
     for drive in drives:
         datapath_left = "{}_03_t200".format(drive)
         datapath_right = "{}_02_t200".format(drive)

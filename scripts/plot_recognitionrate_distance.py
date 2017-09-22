@@ -21,7 +21,7 @@ def plot_recognitionrate_distance():
     maxrange=80
     values = [0]*((maxrange/stepsize)+1)
     hitmap = [0]*((maxrange/stepsize)+1)
-    matcher = compare.GroundtruthComparison()
+    matcher = compare.VehicleDetectionAnalyization()
     fig = plt.figure()
     distances = np.linspace(1, maxrange, (maxrange/stepsize)+1,dtype=int)
     for drive in drives:
