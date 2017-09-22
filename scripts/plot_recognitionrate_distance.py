@@ -7,7 +7,7 @@ import matplotlib.patches as patches
 
 # make modules accessible for the script
 
-import image_processing.vehicle_detection.compare_detection_groundtruth as compare
+import image_processing.vehicle_detection.vehicle_detection_analyzer as compare
 
 
 def plot_recognitionrate_distance():
@@ -21,7 +21,7 @@ def plot_recognitionrate_distance():
     maxrange=80
     values = [0]*((maxrange/stepsize)+1)
     hitmap = [0]*((maxrange/stepsize)+1)
-    matcher = compare.VehicleDetectionAnalyization()
+    matcher = compare.VehicleDetectionAnalyzer()
     fig = plt.figure()
     distances = np.linspace(1, maxrange, (maxrange/stepsize)+1,dtype=int)
     for drive in drives:

@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 
 # make modules accessible for the script
 
-import image_processing.vehicle_detection.compare_detection_groundtruth as compare
+import image_processing.vehicle_detection.vehicle_detection_analyzer as compare
 
 def plot_threshold_influence():
     date = '2011_09_26'
@@ -19,7 +19,7 @@ def plot_threshold_influence():
     alpha = 10
     falsePositives = [0] * len(thresholds)
     falseNegatives = [0] * len(thresholds)
-    matcher = compare.VehicleDetectionAnalyization()
+    matcher = compare.VehicleDetectionAnalyzer()
     fig = plt.figure()
     for drive in drives:
 

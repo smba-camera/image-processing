@@ -17,7 +17,7 @@ import image_processing.kitti_data.vehicle_positions as vp
 import image_processing.util.Util as util
 
 ''' uses vehicle detection to mark all vehicles on the kitti images '''
-class VehicleDetectionAnalyization():
+class VehicleDetectionAnalyzer():
     def __init__(self):
         self.matchedCars=[]
 
