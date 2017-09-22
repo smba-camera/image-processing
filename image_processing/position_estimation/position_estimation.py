@@ -19,6 +19,8 @@ class PositionEstimationStereoVision():
         vect = numpy.array(p2)-numpy.array(p1)
         vect *= 0.5
         point_in_between = p1 + vect
+        # double distance to detected object because... it looks better -> distortion_correction_coefficient
+        point_in_between =point_in_between + (point_in_between - self.camera_model_one.getCameraPosition())
         return numpy.array(point_in_between).tolist()[0]
 
     def estimate_range_stereo(self, pos_img_one, pos_image_two):
