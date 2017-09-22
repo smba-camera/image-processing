@@ -28,6 +28,7 @@ class GroundtruthComparison():
         vehiclePositions=vp.VehiclePositions(path,date,drive)
         leftCameraModel=kittiDataLoader.getCameraModel(3)
         rightCameraModel=kittiDataLoader.getCameraModel(2)
+        veloCameraModel=kittiDataLoader.getVeloExtrinsicModel()
         positionEstimator= pe.PositionEstimationStereoVision(leftCameraModel,rightCameraModel)
         #datapath_left='0056_03_0-10_t975'
         #datapath_right = '0056_02_0-10_t975'
@@ -50,7 +51,8 @@ class GroundtruthComparison():
             cars=[]
             for x in range(len(vehicles)):
                 if vehicles[x].type in ('Car'):#,'Van','Truck'):
-                    cars.append((vehicles[x].xPos,vehicles[x].yPos))
+                    b,y,z=veloCameraModel.project_coordinates([vehicles[x].xPos,vehicles[x].yPos,vehicles[x].zPos])
+                    cars.append((z,-b))
             realCarCount+=len(cars)
             detectedCarCount+=len(carPositions)
             #cars.sort(key=lambda tup: np.sqrt(tup[0] * tup[0] + tup[1] * tup[1]))
@@ -125,9 +127,15 @@ class GroundtruthComparison():
                 self.x_mean_deviation_per_distance[distance] = x_mean_deviation_per_distance / float(num_found_cars_per_distance)
                 self.y_mean_deviation_per_distance[distance] = y_mean_deviation_per_distance / float(num_found_cars_per_distance)
         self.error_rate = num_found_cars / float(len(matches_without_false))
-        self.x_mean_deviation = x_mean_deviation_per_distance_aggregated / float(num_found_cars)
-        self.y_mean_deviation = y_mean_deviation_per_distance_aggregated / float(num_found_cars)
+        if num_found_cars:
+            self.x_mean_deviation = x_mean_deviation_per_distance_aggregated / float(num_found_cars)
+            self.y_mean_deviation = y_mean_deviation_per_distance_aggregated / float(num_found_cars)
+        else:
+
+            self.x_mean_deviation=None
+            self.y_mean_deviation=None
         self.num_false_positives = len(matches_false_positives)
+
 
     def get_x_error_rate(self):
 
