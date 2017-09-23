@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from collections import namedtuple
+from Kitti import Kitti
 import os
 
 class Vehicle:
@@ -19,6 +20,7 @@ class VehiclePositions:
         trackletsPath = os.path.join(path, date, trackletsFolder, date, syncFolder)
         filePath = os.path.join(trackletsPath, 'tracklet_labels.xml')
         self.parsed_xml = ET.parse(filePath).getroot()
+        self.kitti = Kitti(path,date)
 
     def get_frame_count(self):
         e = self.parsed_xml
@@ -45,4 +47,14 @@ class VehiclePositions:
                 vehicles.append(newVehicle)
         return vehicles
 
+    '''Projected to the coordinate system of camera 0'''
+    def getVehiclePositions_projected(self, frame):
+        vehicles = self.getVehiclePosition(frame)
+        velo_extrinsic_model = self.kitti.getVeloExtrinsicModel()
+        cars = []
+        for v in range(len(vehicles)):
+            if vehicles[v].type in ('Car'):  # ,'Van','Truck'):
+                x, y, z = velo_extrinsic_model.project_coordinates([vehicles[v].xPos, vehicles[v].yPos, vehicles[v].zPos])
+                cars.append((x,y,z))
+        return cars
 
