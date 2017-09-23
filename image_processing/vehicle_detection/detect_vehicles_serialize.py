@@ -41,3 +41,6 @@ def load_detected_vehicles(file_name):
     file_path = os.path.join('data', 'detected_vehicles', file_name)
     with open(file_path, 'rb') as f:
         return pickle.load(f)
+
+def get_detected_vehicles_file_name(drive, img_num, threshold):
+    return "{:04d}_{:02d}_t{}".format(drive,img_num, threshold)
