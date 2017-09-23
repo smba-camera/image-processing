@@ -128,7 +128,8 @@ class VehicleDetectionAnalyzer():
                 y_mean_deviation_per_distance_aggregated += y_mean_deviation_per_distance
                 self.x_mean_deviation_per_distance[distance] = x_mean_deviation_per_distance / float(num_found_cars_per_distance)
                 self.y_mean_deviation_per_distance[distance] = y_mean_deviation_per_distance / float(num_found_cars_per_distance)
-        self.error_rate = num_found_cars / float(len(matches_without_false))
+        self.detection_rate = num_found_cars / float(len(matches_without_false))
+        self.num_false_negatives = len(matches_without_false) - num_found_cars
         if num_found_cars:
             self.x_mean_deviation = x_mean_deviation_per_distance_aggregated / float(num_found_cars)
             self.y_mean_deviation = y_mean_deviation_per_distance_aggregated / float(num_found_cars)
