@@ -1,6 +1,7 @@
 import os
 import glob,sys
 import cv2
+import argparse
 
 # make modules accessible for the script
 sys.path.append(os.path.abspath(os.path.join(".")))
@@ -9,9 +10,9 @@ import image_processing.vehicle_detection.Vehicle_detection as vd
 
 ''' uses vehicle detection to mark all vehicles on the kitti images '''
 
-def runVisualization():
-    path = os.path.abspath(os.path.join('data', 'images2'))
-    sampleimg=cv2.imread(os.path.join(path,'0000000000.png'))
+def runVisualization(path):
+    path = path
+    sampleimg=cv2.imread(glob.glob(os.path.join(path,'*.jpg'))[0])
     detector=vd.VehicleDetection(sampleimg)
     images=glob.glob(os.path.join(path,'*.png'))
     images.sort()
@@ -20,4 +21,7 @@ def runVisualization():
         detector.show_vehicles(img)
 
 if __name__ == "__main__":
-    runVisualization()
+    parser = argparse.ArgumentParser(description='Shows detected vehicles')
+    parser.add_argument('path')
+    args = parser.parse_args()
+    runVisualization(args.path)
