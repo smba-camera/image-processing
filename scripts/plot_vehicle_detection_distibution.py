@@ -70,7 +70,7 @@ def plot_recognitionrate_distance():
 
     plt.xlabel('y-direction [m]')
     plt.ylabel('x-direction [m]')
-    plt.title('Top View of (non-)detected cars in 3000 frames')
+    plt.title('Top View of (non-)detected cars in 3000 image pairs')
     #plt.axis([0,maxrange,0,1])
     handles, labels = plt.gca().get_legend_handles_labels()
     # reverse the order
