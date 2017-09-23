@@ -29,25 +29,21 @@ def plot_threshold_influence():
             datapath_right = drive + '_02_t'+thresh
             matcher.runComparison(date, drive, datapath_left, datapath_right, alpha)
             falseNegatives[i]+=matcher.num_false_negatives
-            print falseNegatives
             falsePositives[i]+=matcher.num_false_positives
-           # print falseNegatives,falsePositives
             matcher.reset()
             i += 1
     aggregated_errors=[sum(x) for x in zip(*[falsePositives,falseNegatives])]
     thresholds=[int(x)/255.0 for x in thresholds ]
     plt.plot(thresholds, falseNegatives, 'bo-',label='false negatives',color='green')
     plt.plot(thresholds, falsePositives, 'bo-',label='false positives',color='blue')
-    plt.plot(thresholds, aggregated_errors, 'bo-', label='false positives', color='red')
-
+    plt.plot(thresholds, aggregated_errors, 'bo-', label='aggregated errors', color='red')
     plt.legend(loc='best')
-    #plt.axis([np.min(thresholds)-10, np.max(thresholds)+10, max(np.max(falsePositives),np.max(falseNegatives))+1])
-    #plt.ylabel('Average deviation from correct position per meter distance [m]')
-    #plt.xlabel('Distance from detected cars [m]')
-    #plt.title('Average deviation of calculated distance to real distance\n as measured on 3000 Kitti image pairs')
-    #fig.savefig(os.path.join('data', 'plots', 'plot_xy_deviation_per_distance.png'))
+
+    plt.ylabel('Count of false detections')
+    plt.xlabel('Detection threshold')
+    plt.title('Calculation of best detection threshold\n based on analysis of 4400 image pairs')
+    fig.savefig('data/plots/Plot_threshold_influence.png')
     plt.show()
-    #fig.savefig('data/plots/Stereo_Recognition_Rate_per_Distance.png')
 
 
 
