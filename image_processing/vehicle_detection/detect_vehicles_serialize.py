@@ -43,4 +43,4 @@ def load_detected_vehicles(file_name):
         return pickle.load(f)
 
 def get_detected_vehicles_file_name(drive, img_num, threshold):
-    return "{:04d}_{:02d}_t{}".format(drive,img_num, threshold)
+    return "{}_{}_t{}".format(drive,img_num, threshold) # 0056_02_t200
