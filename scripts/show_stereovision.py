@@ -1,3 +1,4 @@
+import argparse
 import os
 import glob,sys
 import cv2
@@ -18,8 +19,29 @@ import matplotlib.animation as manimation
 
 ''' uses vehicle detection to mark all vehicles on the kitti images '''
 
-def runStereoVisualization():
-    drive = '0056'
+def runStereoVisualization_show(drive_num):
+    vis_generator = runStereoVisualization_generator(drive_num, 0.0001)
+    for _ in vis_generator:
+        pass
+def runStereoVisualization_save(drive_num, file_name):
+    FFMpegWriter = manimation.writers['ffmpeg']
+    metadata = dict(title='Movie Test', artist='Matplotlib',
+                    comment='Movie support!')
+    writer = FFMpegWriter(fps=7, metadata=metadata)
+    video_path=os.path.join('data','videos')
+    if file_name:
+        file_name = os.path.join(video_path, "{}.mp4".format(file_name))
+    else:
+        file_name = os.path.join(video_path, "{}.mp4".format('stereovision'))
+    if not os.path.exists(video_path):
+        os.mkdir(video_path)
+    vis_generator = runStereoVisualization_generator(drive_num,0)
+    fig = vis_generator.next()
+    with writer.saving(fig, file_name, 100):
+        for _ in vis_generator:
+            writer.grab_frame()
+def runStereoVisualization_generator(drive_number, fig_wait_time):
+    drive = "{:04}".format(drive_number)
     thresh = '180'
     calculate=False
     path = os.path.abspath(os.path.join('data', 'kitti'))
@@ -28,7 +50,7 @@ def runStereoVisualization():
     images_path = os.path.join(path, date, sync_foldername, date, sync_foldername)
     images_path_2 = os.path.join(images_path, "image_02", "data")
     images_path_3 = os.path.join(images_path, "image_03", "data")
-    print(images_path_3)
+    #print(images_path_3)
     kittiDataLoader = kitti(path, date)
     leftCameraModel = kittiDataLoader.getCameraModel(3)
     rightCameraModel = kittiDataLoader.getCameraModel(2)
@@ -46,17 +68,11 @@ def runStereoVisualization():
     images3 = glob.glob(os.path.join(images_path_3, '*.png'))
     images3.sort()
     fig=plt.figure()
-    print images2
+    #print images2
     positionEstimator= pe.PositionEstimationStereoVision(leftCameraModel,rightCameraModel)
     vehiclePositions = vp.VehiclePositions(path, date, drive)
-    FFMpegWriter = manimation.writers['ffmpeg']
-    metadata = dict(title='Movie Test', artist='Matplotlib',
-                    comment='Movie support!')
-    writer = FFMpegWriter(fps=7, metadata=metadata)
-    video_path=os.path.join('data','videos')
-    if not os.path.exists(video_path):
-        os.mkdir(video_path)
-    file_name = os.path.join(video_path, "{}.mp4".format('stereovision'))
+
+
     #mng = plt.get_current_fig_manager()
     #mng.full_screen_toggle()
 
@@ -67,7 +83,7 @@ def runStereoVisualization():
  #       writer.grab_frame()
 
     frameid=-1
-    for image2,image3 in zip(images2,images3):
+    for image2,image3 in zip(images2,images3)[:5]:
         frameid+=1
         img2=cv2.imread(image2)
         img3=cv2.imread(image3)
@@ -112,9 +128,23 @@ def runStereoVisualization():
         ax3.set_ylim([0, 100])
         ax3.set_xlim([-25, 25])
         ax3.set_aspect(1)
-        plt.pause(0.001)
+        if fig_wait_time:
+            plt.pause(fig_wait_time)
+        yield fig
         fig.clear()
 
 
 if __name__ == "__main__":
-    runStereoVisualization()
+    parser = argparse.ArgumentParser(description='Renders Kitti data with marked positions of objects')
+    parser.add_argument('drive_number', type=int)
+
+    parser.add_argument('-name', '--video_name')
+    parser.add_argument('--save', action='store_true')
+
+#    parser.add_argument('-sf', '--start_frame', type=int)
+#    parser.add_argument('-ef', '--end_frame', type=int)
+    args = parser.parse_args()
+    if args.save:
+        runStereoVisualization_save(args.drive_number, args.video_name)
+    else:
+        runStereoVisualization_show(args.drive_number)
