@@ -83,7 +83,7 @@ def runStereoVisualization_generator(drive_number, fig_wait_time):
  #       writer.grab_frame()
 
     frameid=-1
-    for image2,image3 in zip(images2,images3)[:5]:
+    for image2,image3 in zip(images2,images3):
         frameid+=1
         img2=cv2.imread(image2)
         img3=cv2.imread(image3)
