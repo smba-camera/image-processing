@@ -21,9 +21,10 @@ def visibilityOfRain():
     #R depends on the brightness of the scene and camera sensitivity
     #G function is unknown
     def G(f,N):
-        return f/N
+        return 1
 
-    vr_aprox = ((a ^ 2) * np.sqrt(rho) / np.sqrt(v))*(Lr-Lb)*((np.sqrt( G(f,N) ) ) / np.sqrt(Te) )
+    #vr_aprox = ((a ^ 2) * np.sqrt(rho) / np.sqrt(v))*(Lr-Lb)*((np.sqrt( G(f,N) ) ) / np.sqrt(Te) )
+    vr_aprox = ((a ^ 2) * np.sqrt(rho) / np.sqrt(v))*(Lr-Lb) / np.sqrt(Te)
     print vr_aprox
 
 
@@ -31,8 +32,9 @@ def visibilityOfRain():
 def Gaussian_N(X, mu, sigma):
     return 1 / (sigma * np.sqrt(2 * np.pi)) * np.e ^ ((-1 / 2) * (sigma ^ (-2)) * (X - mu) ^ 2)
 
-def Gaussian_Normal(X,mu,sigma):
-    return np.random.normal(mu,sigma,None)
+#X is a pixel
+def Gaussian_Normal(mu,sigma,X):
+    return np.random.normal(mu,sigma,X)
 
 def movingObjectsSegmentation():
     K = 100  # number of Gaussian distributions for each pixel
