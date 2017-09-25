@@ -113,3 +113,6 @@ src/image_processing/hidrometeor_detection/virtual_env
 data
 # performance analyzation logfile
 /performance.txt
+
+#wheel files
+*.whl
