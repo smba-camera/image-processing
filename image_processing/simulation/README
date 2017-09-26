@@ -1,1 +1,2 @@
-data classes for the smba simulation
+
+This module contains the data classes for the smba simulation along with the SimulationEntryPoint which shows the Johnsons Criteria in action in a 2D simulation.

@@ -1,6 +1,6 @@
-from Image import *
 import numpy as np
 
+#a general description of a simulated car
 class Car:
 
     #x and y are reflected as the center of the car rear axle
@@ -10,7 +10,7 @@ class Car:
         self.y_coor = y
         self.length = length
         self.width = width
-        self.theta = theta #is the angle
+        self.theta = theta #is the angle of the car wrt to the X axis
 
     def addCameraToEgoCar(self,camera):
         self.camera = camera

@@ -1,1 +1,4 @@
-Implementation of the Backgroundsubstraction for raindroplet detection
+WeatherInfluence contains contains methods for returning the amount (in percentage) of the image that is obstructed from view by weather effects based on weather parameters.
+
+HydrometeorDetection is an uncompleted version of the code described in the paper "Rain or Snow Detection in Image Sequences
+Through Use of a Histogram of Orientation Streaks" [Bossu et. al] The end goal was to provide a direct mapping of rain pixels from real images into affected detection ranges.

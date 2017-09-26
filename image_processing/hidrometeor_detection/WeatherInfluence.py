@@ -7,34 +7,16 @@ from image_processing.camera_model import *
 from image_processing.testimage_preprocessor import image_operations
 
 # rain drop size: 0.5 to 5 (hail 10 - 40) (snow 0.5 to 20)mm / density from 0 to 500mm/hour
-
-def getPercentageBasedOnWeatherInfluence(image_width,image_height,weather = Weather("Rain",size=1,density=150)):
-    weather_type = weather.weather_type
-    if(weather.density==0): return 0
-    if (weather_type == "Rain"):
-        hydrometeorSize = weather.meteor_size
-        density = weather.density
-        return ((hydrometeorSize-0.5)*density)/(4.5*500+(4.5*500)*(50/100))
-    elif (weather_type == "Hail"):
-        hydrometeorSize = weather.meteor_size
-        density = weather.density
-        return ((hydrometeorSize-10)*density)/(30*500+(30*500)*(50/100))
-    elif (weather_type == "Snow"):
-        hydrometeorSize = weather.meteor_size
-        density = weather.density
-        return ((hydrometeorSize-0.5)*density)/(19.5*500+(19.5*500)*(50/100))
-    elif (weather_type == "Fog"):
-        hydrometeorSize = 0
-        density = weather.density
-        if(density==0): return 0
-        return density/(500+500*(20/100))
-    else: #the sunny case
-        hydrometeorSize = 0
-        density = 0
-        return 0
-    return 0
-
 def getPercentageBasedOnSimulatedPixels(image_width=640,image_height=320,weather = Weather(current_weather="Rain",size=1,density=150),):
+    """
+    A method that uses testimage_preprocessor.image_operations to simulate
+    fake weather given the weather parameters and then counts the amound of
+    affected rain pixels to return a percentage of the image covered by adverse weather effects.
+    :param image_width: width of image in pixels
+    :param image_height: height of image in pixels
+    :param weather: the weather effect being simulated
+    :return: the percentage of image pixels affected by the weather
+    """
     blank_image = np.zeros((image_height,image_width,3), np.uint8)
     weather_type = weather.current_weather
     if (weather_type == "Sunny"): return 0
@@ -78,3 +60,30 @@ def getPercentageBasedOnSimulatedPixels(image_width=640,image_height=320,weather
     #cv2.imshow("opencv", fake_rain)
     #cv2.waitKey(0)
     return only_white/(image_width*image_height)
+
+def getPercentageBasedOnWeatherInfluence(image_width,image_height,weather = Weather("Rain",size=1,density=150)):
+    #an uncompleted method due to lack of information that aims to map direct weather parameters into amound of affected pixels
+    weather_type = weather.weather_type
+    if(weather.density==0): return 0
+    if (weather_type == "Rain"):
+        hydrometeorSize = weather.meteor_size
+        density = weather.density
+        return ((hydrometeorSize-0.5)*density)/(4.5*500+(4.5*500)*(50/100))
+    elif (weather_type == "Hail"):
+        hydrometeorSize = weather.meteor_size
+        density = weather.density
+        return ((hydrometeorSize-10)*density)/(30*500+(30*500)*(50/100))
+    elif (weather_type == "Snow"):
+        hydrometeorSize = weather.meteor_size
+        density = weather.density
+        return ((hydrometeorSize-0.5)*density)/(19.5*500+(19.5*500)*(50/100))
+    elif (weather_type == "Fog"):
+        hydrometeorSize = 0
+        density = weather.density
+        if(density==0): return 0
+        return density/(500+500*(20/100))
+    else: #the sunny case
+        hydrometeorSize = 0
+        density = 0
+        return 0
+    return 0

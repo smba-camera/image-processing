@@ -1,6 +1,6 @@
 import numpy as np
 
-
+#A class for simulating weather effects
 class Weather(object):
     WEATHER_TYPE = dict(enumerate({"Sunny", "Rain", "Snow", "Hail", "Fog"}))
 

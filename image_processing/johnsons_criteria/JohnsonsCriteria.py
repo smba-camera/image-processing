@@ -22,6 +22,12 @@ class JohnsonCriteria:
                         "identification":math.ceil(johnsons_criteria[3]["identification"]["pixels"]+johnsons_criteria[3]["identification"]["tolerance"])}
 
     def isInFieldOfView(self,cameraFov,carAngle):
+        """
+        Checks if the car from the simulation is within the field of view of the camera
+        :param cameraFov: lens angle of the camera for the field of view
+        :param carAngle: the offset angle of the car from the X axis centered at the ego car. (0 means the car is on the X axis)
+        :return: True if the car is in the cameras field of view
+        """
         lowCameraDetectionRange = -cameraFov/2
         highCameraDetectionRange = cameraFov/2
         if (carAngle>=lowCameraDetectionRange and carAngle<=highCameraDetectionRange):
@@ -29,6 +35,13 @@ class JohnsonCriteria:
         else: return False
 
     def getTargetVisibleSize(self,length,width,carRotation):
+        """
+        Checks how much of the car can be seen by the camera
+        :param length: length of car
+        :param width: width of car
+        :param carRotation: the angle of the cars body with respect to the X axis (0 means the car is parallel with the X axis)
+        :return: a number corresponding to how big is the targets visible size from the ego cars camera point of view
+        """
         if (carRotation>np.pi/2): carRotation = np.pi - carRotation
         carRotation = np.pi/2 - carRotation
 
@@ -39,9 +52,16 @@ class JohnsonCriteria:
 
         return targetVisibleSize
 
-    #according to these smartdicks: https://kintronics.com/calculating-can-see-ip-camera/ + other calculators and common sense
+    #according to https://kintronics.com/calculating-can-see-ip-camera/ + other calculators and common sense
     def getMaximumRange(self,pixelsPerM, horizontalImagePixels, visibleTargetArea, cameraLensFov):
-
+        """
+        Finds the maximum range at which the goal is satisfied by the johnsons criteria
+        :param pixelsPerM: the goal criteria according to the Johnsons Criteria
+        :param horizontalImagePixels: horizontal size of the image in pixels
+        :param visibleTargetArea: size in m of the visible target
+        :param cameraLensFov: field of view in radians of the camera lens
+        :return: the maximum distance at which the goal is satisfied give the specific parameters
+        """
         fieldOfView = horizontalImagePixels*visibleTargetArea/pixelsPerM
         fieldOfView = fieldOfView/2
         cameraLensFov = cameraLensFov/2
@@ -51,10 +71,11 @@ class JohnsonCriteria:
         #(elektrobit slide 12) d is the lower bound distance to detect the target (too optimistic)
         d = horizontalImagePixels*visibleTargetArea/cameraLensFov
 
-        print("target",visibleTargetArea,"logic:",distance,"elektrobit",d)
+        #print("target",visibleTargetArea,"logic:",distance,"elektrobit",d)
         return distance
 
     def getDistanceToTarget(self,target_x,target_y,ego_x=0,ego_y=0):
+        #a simple euclidian distance between ego car and target car
         return math.hypot(target_x - ego_x, target_y - ego_y)
 
     def isCarDetected(self,
@@ -66,6 +87,14 @@ class JohnsonCriteria:
                       car=Car(x=20, y=15, length=4.7, width=1.9, theta=90),
                       weather=None
                       ):
+        """
+        Checks if the target (car) is detected by by the ego car or not
+        :param goal: the goal according to the johnsons criteria: detection, recognition or identification
+        :param im: the intrinsic model of the specific camera model being tested
+        :param car: the target care being tested against
+        :param weather: the specific weather influencing the test
+        :return: true if the car is detected and false if not
+        """
         car_length = car.length  # m
         car_width = car.width  # m
         car_rotation = car.theta # degrees from Y axis 0 = 180 = horizontal, 90 = vertical
@@ -77,7 +106,7 @@ class JohnsonCriteria:
         carAngle = math.atan2(car_position[1], car_position[0]) #returns the angle between the x axis and the car position in radians
 
         if (self.isInFieldOfView(im.fov_horizontal,carAngle)):
-            print("is in fov")
+            print("tested car is in fov")
             visibleTargetArea = self.getTargetVisibleSize(car_length,car_width,car_rotation)
 
             rainCoverPercent = WeatherInfluence.getPercentageBasedOnSimulatedPixels(im.image_width,im.image_height,weather)
@@ -91,10 +120,10 @@ class JohnsonCriteria:
             distanceToTarget = self.getDistanceToTarget(car_position[0],car_position[1])
             print("max range with weather: ",maxRange,"without weather",maxRangeNoWeather,"distance to target",distanceToTarget," goal",goal)
             if (maxRange>distanceToTarget):
-                print("is within max range")
+                print("tested car is within max range of johnsons criteria")
                 return True
             else:
-                print("is outside max range")
+                print("tested car is outside max range of johnsons criteria")
                 return False
         else:
             return False
