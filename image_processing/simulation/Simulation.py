@@ -29,10 +29,6 @@ def startSimulation():
     elif(jc_goal.lower().startswith('R')): jc_goal="recognition"
     else:jc_goal="identification"
 
-    playground = Playground(weather,playground_size,playground_size,noOfSimCars,jc_goal)
-    print("Playground created")
-    playground.addRandomCars()
-
     data = raw_input('Input camera lens angle (degrees): ')
     camerafov_radians = np.radians(int(data))
     data = raw_input('Input camera resolution width (pixels): ')
@@ -42,10 +38,6 @@ def startSimulation():
 
     im = IntrinsicModel(fov_horizontal=camerafov_radians,fov_vertical=camerafov_radians,image_width=camera_width_pixels,image_height=camera_height_pixels)
     camera = CameraModel(im=im,em=None,prepare_projection_matrix=False)
-    myCar = Car(0,0,5,2,0)
-
-    myCar.addCameraToEgoCar(camera)
-    playground.addEgoCar(myCar)
 
     data = raw_input('Input number of simulation iterations (integer): ')
     sim_iterations = int(data)
@@ -68,6 +60,15 @@ def startSimulation():
         weather.meteor_size = float(data)
         data = raw_input('Input weather effect density (mm/hour,between 1-300): ')
         weather.density = float(data)
+
+    myCar = Car(0,0,5,2,0)
+    myCar.addCameraToEgoCar(camera)
+
+    playground = Playground(weather,playground_size,playground_size,noOfSimCars,jc_goal)
+    print("Playground created")
+    playground.addRandomCars()
+    playground.addEgoCar(myCar)
+
     i=1
     print("starting simulation with weather ",weather.current_weather)
     while (i<=sim_iterations):
