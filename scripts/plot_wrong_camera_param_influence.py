@@ -67,7 +67,7 @@ def do_stuff():
             distances_to_correct = []
             #print(cm_02.getCameraPosition())
             for v_img_02,v_img_03,v_real_coord in zip(vehicles_on_image_2,vehicles_on_image_3,vehiclePositions_relative_to_camera_0)[1:]:
-                new_wrong_pos = position_estimator.estimate_position(v_img_02,v_img_03)
+                new_wrong_pos = position_estimator.estimate_position([v_img_02]*2,[v_img_03]*2)
                 #unmodified_pos_estimation = PositionEstimationStereoVision(camera_model_one=cm_02, camera_model_two=cm_03).estimate_position(v_img_02,v_img_03,real_pos=v_real_coord, plot_func=plot_projection.plot_in_3d)
 
                 wrong_real_world_vehicles.append(new_wrong_pos)
@@ -98,7 +98,7 @@ def plot(rads,distances):
     fig = matplotlib.pyplot.figure()
     ax = matplotlib.pyplot.axes()
     matplotlib.pyplot.xlabel('rotation calibration error in x*pi')
-    matplotlib.pyplot.ylabel('calculated error')
+    matplotlib.pyplot.ylabel('calculated error [m]')
     ax.plot(rads,distances)
 
     return fig

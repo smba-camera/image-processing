@@ -6,24 +6,28 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 # make modules accessible for the script
+sys.path.append(os.path.abspath(os.path.join(".")))
 
-import image_processing.vehicle_detection.compare_detection_groundtruth as compare
+from image_processing.vehicle_detection.vehicle_detection_analyzer import VehicleDetectionAnalyzer
 ''' uses vehicle detection to mark all vehicles on the kitti images '''
 
 def runStereoEvaluation():
     date = '2011_09_26'
-    drive=56
-    datapath_left = '0056_03_0-10_t975'
-    datapath_right = '0056_02_0-10_t975'
+    drive='0056'
+    datapath_left = '0056_03_0-100_t200'
+    datapath_right = '0056_02_0-100_t200'
     startFrame = 0
     maxFrame = 10
     alpha=50
-    matched_pairs=compare.runComparison(date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha)
-    print matched_pairs
-
-
-
-
+    comparer = VehicleDetectionAnalyzer()
+    comparer.runComparison(date,drive,datapath_left,datapath_right,startFrame,maxFrame,alpha)
+    print(comparer.detection_rate)
+    print(comparer.num_false_positives)
+    print(comparer.error_rate_per_distance)
+    print(comparer.x_mean_deviation)
+    print(comparer.y_mean_deviation)
+    print(comparer.x_mean_deviation_per_distance)
+    print(comparer.y_mean_deviation_per_distance)
 
 if __name__ == "__main__":
     runStereoEvaluation()
